@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { 
   X, Shield, Lock, Briefcase, Calendar, Users, DollarSign, 
   Search, Filter, CheckCircle, Clock, Trash2, Edit3, Save, 
-  Plus, TrendingUp, Award, Layers, MapPin, Phone, Mail, FileText, ChevronRight,
+  Plus, TrendingUp, Award, Layers, MapPin, Phone, Mail, FileText, ChevronRight, Upload,
   Sliders, Palette, Image as ImageIcon, Type, Link as LinkIcon, MessageSquare, Compass, Settings
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
@@ -19,10 +19,151 @@ interface AdminPanelProps {
   onAddManualBooking: (booking: ConsultationRequest) => void;
   cmsData: CMSState;
   onUpdateCMS: (data: CMSState) => void;
+  onReplayIntro?: () => void;
 }
 
 // Passcode: admin (very easy for client to access but keeps it secure from random visitors)
 const CORRECT_PASSCODE = 'admin';
+
+interface ImageUploaderProps {
+  key?: any;
+  label: string;
+  value: string;
+  onChange: (newValue: string) => void;
+  idPrefix: string;
+}
+
+function ImageUploader({ label, value, onChange, idPrefix }: ImageUploaderProps) {
+  const [dragActive, setDragActive] = useState(false);
+  const [error, setError] = useState('');
+
+  const handleFile = (file: File) => {
+    if (!file.type.startsWith('image/')) {
+      setError('Please upload an image file.');
+      return;
+    }
+    if (file.size > 2 * 1024 * 1024) {
+      setError('Image is larger than 2MB. Please compress for fast loading.');
+    } else {
+      setError('');
+    }
+
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      if (e.target?.result && typeof e.target.result === 'string') {
+        onChange(e.target.result);
+      }
+    };
+    reader.readAsDataURL(file);
+  };
+
+  const handleDrag = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (e.type === "dragenter" || e.type === "dragover") {
+      setDragActive(true);
+    } else if (e.type === "dragleave") {
+      setDragActive(false);
+    }
+  };
+
+  const handleDrop = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setDragActive(false);
+    if (e.dataTransfer.files && e.dataTransfer.files[0]) {
+      handleFile(e.dataTransfer.files[0]);
+    }
+  };
+
+  return (
+    <div className="space-y-2 bg-luxury-gray/10 p-3 border border-gold-500/10 rounded">
+      <div className="flex justify-between items-center">
+        <label className="text-[10px] font-mono tracking-wider text-gold-400 uppercase font-semibold">{label}</label>
+        {value && value.startsWith('data:image/') && (
+          <span className="text-[8px] font-mono text-emerald-400 uppercase bg-emerald-950/20 px-1 border border-emerald-500/20 rounded">Uploaded File</span>
+        )}
+      </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-12 gap-3 items-center">
+        {/* Preview */}
+        <div className="md:col-span-3 flex justify-center">
+          {value ? (
+            <div className="relative group w-20 h-20 border border-gold-500/20 bg-luxury-black rounded overflow-hidden">
+              <img src={value} alt="Preview" className="w-full h-full object-cover" referrerPolicy="no-referrer" />
+              <button
+                type="button"
+                onClick={() => onChange('')}
+                className="absolute inset-0 bg-rose-950/80 text-rose-400 opacity-0 group-hover:opacity-100 flex items-center justify-center text-[10px] font-mono uppercase transition-opacity cursor-pointer font-bold"
+              >
+                Clear
+              </button>
+            </div>
+          ) : (
+            <div className="w-20 h-20 border border-dashed border-gray-700 bg-luxury-black/40 rounded flex flex-col items-center justify-center text-gray-600">
+              <ImageIcon size={18} />
+              <span className="text-[8px] font-mono mt-1">No Image</span>
+            </div>
+          )}
+        </div>
+
+        {/* Upload zone and Input */}
+        <div className="md:col-span-9 space-y-2">
+          {/* Drag & drop zone */}
+          <div
+            onDragEnter={handleDrag}
+            onDragOver={handleDrag}
+            onDragLeave={handleDrag}
+            onDrop={handleDrop}
+            className={`border border-dashed p-3 text-center transition-colors relative rounded ${
+              dragActive 
+                ? 'border-gold-400 bg-gold-950/20' 
+                : 'border-gold-500/15 bg-luxury-black/40 hover:border-gold-500/30'
+            }`}
+          >
+            <input
+              type="file"
+              id={`file-upload-${idPrefix}`}
+              accept="image/*"
+              onChange={(e) => {
+                if (e.target.files && e.target.files[0]) {
+                  handleFile(e.target.files[0]);
+                }
+              }}
+              className="hidden"
+            />
+            <label
+              htmlFor={`file-upload-${idPrefix}`}
+              className="cursor-pointer flex flex-col items-center justify-center gap-1"
+            >
+              <Upload size={14} className="text-gold-400" />
+              <span className="text-[10px] font-mono text-gray-300">
+                Drag & drop or <span className="text-gold-400 font-semibold underline">Browse file</span>
+              </span>
+              <span className="text-[8px] text-gray-500 font-sans">Supports PNG, JPG, SVG, WEBP</span>
+            </label>
+          </div>
+
+          {/* Or enter URL */}
+          <div className="flex gap-2 items-center bg-luxury-black/30 p-1.5 border border-gold-500/5 rounded">
+            <span className="text-[8px] font-mono text-gray-500">OR URL:</span>
+            <input
+              type="text"
+              placeholder="Paste direct image link..."
+              value={value}
+              onChange={(e) => onChange(e.target.value)}
+              className="flex-1 bg-transparent text-[10px] font-mono text-gray-300 focus:outline-none placeholder-gray-600"
+            />
+          </div>
+
+          {error && (
+            <p className="text-[9px] text-rose-400 font-mono animate-pulse">{error}</p>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
 
 export default function AdminPanel({
   isOpen,
@@ -33,7 +174,8 @@ export default function AdminPanel({
   onDeleteBooking,
   onAddManualBooking,
   cmsData: propCmsData,
-  onUpdateCMS: propOnUpdateCMS
+  onUpdateCMS: propOnUpdateCMS,
+  onReplayIntro
 }: AdminPanelProps) {
   const [cmsData, setCmsData] = useState<CMSState>(propCmsData);
 
@@ -1341,6 +1483,25 @@ export default function AdminPanel({
                                 </div>
                               </div>
                             </div>
+
+                            {/* Entrance Animation Trigger Section */}
+                            {onReplayIntro && (
+                              <div className="border-t border-gold-500/10 pt-5 mt-5 space-y-3">
+                                <label className="text-[10px] font-mono tracking-wider text-gold-400 uppercase block">
+                                  PREMIUM WEBSITE ENTRANCE
+                                </label>
+                                <p className="text-[9px] text-gray-500 font-sans">
+                                  We have implemented a high-end, immersive golden entrance loader featuring your custom logo, cinematic particle dusts, and elegant tracking reveal animation. Click below to experience the website's royal opening sequence.
+                                </p>
+                                <button
+                                  type="button"
+                                  onClick={onReplayIntro}
+                                  className="gold-shimmer-btn text-luxury-black text-[10px] font-mono font-bold tracking-widest py-2.5 px-5 uppercase focus:outline-none hover:shadow-[0_0_15px_rgba(197,142,55,0.3)] transition-all cursor-pointer flex items-center gap-2"
+                                >
+                                  <ImageIcon size={14} /> REPLAY CINEMATIC INTRO
+                                </button>
+                              </div>
+                            )}
                           </div>
                         )}
 
@@ -1419,41 +1580,22 @@ export default function AdminPanel({
                               </div>
                             </div>
 
-                            {/* Logo Image URL Option */}
-                            <div className="border-t border-gold-500/10 pt-4 space-y-3">
-                              <div className="space-y-1">
-                                <label className="text-[10px] font-mono tracking-wider text-gold-400 uppercase block">CUSTOM LOGO IMAGE URL</label>
-                                <p className="text-[9px] text-gray-500 font-sans">
-                                  Provide a web URL (HTTP/HTTPS link) of your company logo (PNG, JPG, SVG, or WEBP) to override and replace the default text & crown graphic logo.
-                                </p>
-                                <div className="flex gap-2">
-                                  <input
-                                    type="text"
-                                    placeholder="e.g. https://example.com/assets/logo.png"
-                                    value={cmsData.navbar.logoImage || ''}
-                                    onChange={(e) => {
-                                      onUpdateCMS({
-                                        ...cmsData,
-                                        navbar: { ...cmsData.navbar, logoImage: e.target.value || undefined }
-                                      });
-                                    }}
-                                    className="flex-1 bg-luxury-black border border-gold-500/15 px-3 py-2 text-xs text-white focus:outline-none font-mono"
-                                  />
-                                  {cmsData.navbar.logoImage && (
-                                    <button
-                                      onClick={() => {
-                                        onUpdateCMS({
-                                          ...cmsData,
-                                          navbar: { ...cmsData.navbar, logoImage: undefined }
-                                        });
-                                      }}
-                                      className="px-3 bg-rose-950/20 border border-rose-500/30 text-rose-400 text-[10px] font-mono uppercase hover:border-rose-500 transition-colors"
-                                    >
-                                      Clear Image
-                                    </button>
-                                  )}
-                                </div>
-                              </div>
+                            {/* Logo Image Option */}
+                            <div className="border-t border-gold-500/10 pt-4">
+                              <ImageUploader
+                                label="Custom Logo Image"
+                                value={cmsData.navbar.logoImage || ''}
+                                onChange={(val) => {
+                                  onUpdateCMS({
+                                    ...cmsData,
+                                    navbar: { ...cmsData.navbar, logoImage: val || undefined }
+                                  });
+                                }}
+                                idPrefix="logo"
+                              />
+                              <p className="text-[8px] text-gray-500 font-sans mt-1">
+                                Upload your company logo or provide a web URL to override and replace the default text & crown graphic logo.
+                              </p>
                             </div>
 
                             {/* Navigation Links custom labels */}
@@ -1584,18 +1726,18 @@ export default function AdminPanel({
                                 {/* Custom Cover Image and Opacity */}
                                 <div className="space-y-4">
                                   <div className="space-y-1">
-                                    <label className="text-[10px] font-mono tracking-wider text-gold-400 uppercase">Custom Cover Image URL</label>
-                                    <input
-                                      type="text"
-                                      value={cmsData.hero.imageUrl}
-                                      onChange={(e) => {
-                                        onUpdateCMS({
-                                          ...cmsData,
-                                          hero: { ...cmsData.hero, imageUrl: e.target.value }
-                                        });
-                                      }}
-                                      className="w-full bg-luxury-black border border-gold-500/15 px-3 py-2 text-[10px] font-mono text-white focus:outline-none"
-                                    />
+                                    <ImageUploader
+                                       label="Cover Background Image"
+                                       value={cmsData.hero.imageUrl}
+                                       onChange={(val) => {
+                                         onUpdateCMS({
+                                           ...cmsData,
+                                           hero: { ...cmsData.hero, imageUrl: val }
+                                         });
+                                       }}
+                                       idPrefix="hero-cover"
+                                     />
+
                                   </div>
 
                                   <div className="space-y-1">
@@ -1795,6 +1937,33 @@ export default function AdminPanel({
                                 ))}
                               </div>
                             </div>
+
+                            {/* About Us Showcase Images */}
+                            <div className="border-t border-gold-500/10 pt-4 space-y-4">
+                              <label className="text-[10px] font-mono tracking-wider text-gold-400 uppercase block">ABOUT US SHOWCASE IMAGES (3 IMAGES)</label>
+                              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                {[0, 1, 2].map((idx) => (
+                                  <ImageUploader
+                                    key={idx}
+                                    label={`Showcase Image #${idx + 1}`}
+                                    value={cmsData.about.images[idx] || ''}
+                                    onChange={(val) => {
+                                      const updatedImages = [...cmsData.about.images];
+                                      updatedImages[idx] = val;
+                                      onUpdateCMS({
+                                        ...cmsData,
+                                        about: {
+                                          ...cmsData.about,
+                                          images: updatedImages
+                                        }
+                                      });
+                                    }}
+                                    idPrefix={`about-img-${idx}`}
+                                  />
+                                ))}
+                              </div>
+                            </div>
+
                           </div>
                         )}
 
@@ -2126,16 +2295,15 @@ export default function AdminPanel({
                                         />
                                       </div>
 
-                                      <div className="md:col-span-5 space-y-1">
-                                        <span className="text-[8px] font-mono text-gray-500 uppercase font-light">Project Image URL</span>
-                                        <input
-                                          type="text"
+                                      <div className="md:col-span-12 space-y-1 mt-2">
+                                        <ImageUploader
+                                          label="Project Event Image"
                                           value={item.imageUrl}
-                                          onChange={(e) => {
-                                            const updated = cmsData.gallery.items.map(g => g.id === item.id ? { ...g, imageUrl: e.target.value } : g);
+                                          onChange={(val) => {
+                                            const updated = cmsData.gallery.items.map(g => g.id === item.id ? { ...g, imageUrl: val } : g);
                                             onUpdateCMS({ ...cmsData, gallery: { ...cmsData.gallery, items: updated } });
                                           }}
-                                          className="w-full bg-luxury-gray border border-gold-500/15 px-2 py-1.5 text-[10px] font-mono text-white focus:outline-none"
+                                          idPrefix={`gal-item-${item.id}`}
                                         />
                                       </div>
                                     </div>
@@ -2287,6 +2455,18 @@ export default function AdminPanel({
                                           onUpdateCMS({ ...cmsData, testimonials: { ...cmsData.testimonials, items: updated } });
                                         }}
                                         className="w-full bg-luxury-gray border border-gold-500/15 p-2 text-xs text-white focus:outline-none font-sans"
+                                      />
+                                    </div>
+
+                                    <div className="space-y-1 mt-2">
+                                      <ImageUploader
+                                        label="Client Portrait/Photo"
+                                        value={item.photoUrl || ''}
+                                        onChange={(val) => {
+                                          const updated = cmsData.testimonials.items.map(t => t.id === item.id ? { ...t, photoUrl: val } : t);
+                                          onUpdateCMS({ ...cmsData, testimonials: { ...cmsData.testimonials, items: updated } });
+                                        }}
+                                        idPrefix={`test-portrait-${item.id}`}
                                       />
                                     </div>
                                   </div>

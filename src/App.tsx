@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { AnimatePresence } from 'motion/react';
 import Header from './components/Header';
 import Hero from './components/Hero';
 import Services from './components/Services';
@@ -9,6 +10,7 @@ import Testimonials from './components/Testimonials';
 import Footer from './components/Footer';
 import BookingModal from './components/BookingModal';
 import AdminPanel from './components/AdminPanel';
+import EntranceLoader from './components/EntranceLoader';
 import { ConsultationRequest } from './types';
 import { loadCMSData, saveCMSData, CMSState } from './cmsData';
 
@@ -83,6 +85,10 @@ const SEED_BOOKINGS: ConsultationRequest[] = [
 ];
 
 export default function App() {
+  const [isIntroActive, setIsIntroActive] = useState(() => {
+    const hasSeenIntro = sessionStorage.getItem('siddharth_vibe_has_seen_intro');
+    return !hasSeenIntro;
+  });
   const [activeSection, setActiveSection] = useState('home');
   const [selectedServiceId, setSelectedServiceId] = useState('');
   const [activeBooking, setActiveBooking] = useState<ConsultationRequest | null>(null);
@@ -216,6 +222,19 @@ export default function App() {
 
   return (
     <div className="relative min-h-screen bg-luxury-black text-gray-200 select-none antialiased">
+      {/* Premium Entrance/Loader Animation */}
+      <AnimatePresence mode="wait">
+        {isIntroActive && (
+          <EntranceLoader
+            cmsData={cmsData}
+            onComplete={() => {
+              setIsIntroActive(false);
+              sessionStorage.setItem('siddharth_vibe_has_seen_intro', 'true');
+            }}
+          />
+        )}
+      </AnimatePresence>
+
       {/* Real-time Theme Overrides Engine */}
       <style>{`
         :root {
@@ -340,6 +359,10 @@ export default function App() {
         onAddManualBooking={handleAddManualBooking}
         cmsData={cmsData}
         onUpdateCMS={handleUpdateCMS}
+        onReplayIntro={() => {
+          setIsIntroActive(true);
+          setIsAdminOpen(false);
+        }}
       />
     </div>
   );

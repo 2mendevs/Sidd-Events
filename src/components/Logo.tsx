@@ -20,11 +20,17 @@ export default function Logo({ className = '', showText = true, size = 'md', log
 
   if (logoImage) {
     return (
-      <div className={`flex items-center select-none ${getScale()} ${className}`}>
+      <div className={`flex items-center justify-center select-none ${getScale()} ${className}`}>
         <img
           src={logoImage}
           alt={logoText || "Siddharth Vibe Events"}
-          className="h-10 w-auto object-contain max-h-12"
+          className={
+            size === 'lg'
+              ? "h-28 md:h-36 w-auto object-contain max-h-40 filter drop-shadow-[0_0_35px_rgba(197,142,55,0.65)]"
+              : size === 'sm'
+                ? "h-8 w-auto object-contain max-h-10"
+                : "h-11 w-auto object-contain max-h-14"
+          }
           referrerPolicy="no-referrer"
         />
       </div>

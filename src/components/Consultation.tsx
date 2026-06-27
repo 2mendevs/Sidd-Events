@@ -83,7 +83,7 @@ export default function Consultation({ selectedServiceId, onBookingSuccess, cmsD
   };
 
   return (
-    <section id="packages" className="relative bg-luxury-black py-24 border-t border-gold-500/10">
+    <section id="packages" className="relative bg-luxury-black pt-12 pb-20 border-t border-gold-500/10">
       
       {/* Absolute glow background decorative bubbles */}
       <div className="absolute bottom-1/4 right-0 w-[500px] h-[500px] bg-gold-600/5 rounded-full blur-[150px] pointer-events-none" />
@@ -99,7 +99,7 @@ export default function Consultation({ selectedServiceId, onBookingSuccess, cmsD
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
           transition={{ duration: 0.8 }}
-          className="relative border border-gold-400/40 p-8 md:p-12 mb-20 overflow-hidden shadow-[0_10px_30px_rgba(0,0,0,0.5)] bg-luxury-gray/80 backdrop-blur-sm"
+          className="relative border border-gold-400/40 p-6 md:p-10 mb-12 overflow-hidden shadow-[0_10px_30px_rgba(0,0,0,0.5)] bg-luxury-gray/80 backdrop-blur-sm"
         >
           {/* Subtle gold inner accent border */}
           <div className="absolute inset-0 border border-gold-400/10 m-2 pointer-events-none" />
@@ -157,10 +157,10 @@ export default function Consultation({ selectedServiceId, onBookingSuccess, cmsD
         {/* ========================================== */}
         {/* 2. REQUEST CONSULTATION FORM (TWO COLUMN)  */}
         {/* ========================================== */}
-        <div id="consultation-form" className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-stretch pt-4">
+        <div id="consultation-form" className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-stretch pt-2 max-w-5xl mx-auto">
           
           {/* Left Column: Interactive Map, Address, Contact details & Socials */}
-          <div className="lg:col-span-5 bg-luxury-gray border border-gold-500/10 p-8 md:p-10 relative shadow-[0_15px_50px_rgba(0,0,0,0.6)] flex flex-col justify-between">
+          <div className="lg:col-span-5 bg-luxury-gray border border-gold-500/10 p-6 md:p-8 relative shadow-[0_15px_50px_rgba(0,0,0,0.6)] flex flex-col justify-between">
             {/* Corner accent decorations */}
             <div className="absolute top-0 left-0 w-8 h-8 border-t border-l border-gold-400/20" />
             <div className="absolute top-0 right-0 w-8 h-8 border-t border-r border-gold-400/20" />
@@ -176,43 +176,43 @@ export default function Consultation({ selectedServiceId, onBookingSuccess, cmsD
               </div>
 
               {/* LUXURY REALISTIC EMBEDDED MAP */}
-              <div className="relative w-full h-[320px] bg-luxury-black border border-gold-500/15 overflow-hidden group shadow-[0_10px_30px_rgba(0,0,0,0.5)]">
+              <div className="relative w-full h-[310px] bg-luxury-black border border-gold-500/15 overflow-hidden group shadow-[0_10px_30px_rgba(0,0,0,0.5)] flex flex-col justify-between">
                 {/* Embedded Real Google Map with high contrast, luxurious dark-themed styling filters */}
-                <iframe
-                  src="https://maps.google.com/maps?q=Siddharth%20Vibe%20Event,%20Opp%20Hdfc%20Bank,%20Thirupparankundram,%20Madurai,%20Tamil%20Nadu%20625005&t=&z=15&ie=UTF8&iwloc=&output=embed"
-                  className="w-full h-full border-0 opacity-80 group-hover:opacity-100 transition-opacity duration-500 filter invert-[90%] hue-rotate-[180deg] saturate-[30%] brightness-[90%] contrast-[110%]"
-                  allowFullScreen
-                  loading="lazy"
-                  title="Siddharth Vibe Events Location Map"
-                ></iframe>
+                <div className="relative w-full h-[260px] overflow-hidden">
+                  <iframe
+                    src="https://maps.google.com/maps?q=Siddharth%20Vibe%20Event,%20Opp%20Hdfc%20Bank,%20Thirupparankundram,%20Madurai,%20Tamil%20Nadu%20625005&t=&z=15&ie=UTF8&iwloc=&output=embed"
+                    className="w-full h-full border-0 opacity-80 hover:opacity-100 transition-opacity duration-500 filter invert-[90%] hue-rotate-[180deg] saturate-[30%] brightness-[90%] contrast-[110%]"
+                    allowFullScreen
+                    loading="lazy"
+                    title="Siddharth Vibe Events Location Map"
+                  ></iframe>
 
-                {/* Accent overlay highlights */}
-                <div className="absolute inset-0 pointer-events-none border border-gold-500/10" />
+                  {/* Accent overlay highlights */}
+                  <div className="absolute inset-0 pointer-events-none border border-gold-500/10" />
 
-                {/* Ambient Info Panels */}
-                <div className="absolute top-3 left-3 bg-luxury-black/90 border border-gold-500/10 px-2 py-1 text-[8px] font-mono text-gray-400 uppercase tracking-widest pointer-events-none z-10 shadow-lg">
-                  LIVE COORDINATE ACTIVE
+                  {/* Ambient Info Panels */}
+                  <div className="absolute top-3 left-3 bg-luxury-black/90 border border-gold-500/10 px-2 py-1 text-[8px] font-mono text-gray-400 uppercase tracking-widest pointer-events-none z-10 shadow-lg">
+                    LIVE COORDINATE ACTIVE
+                  </div>
+                  <div className="absolute bottom-3 left-3 bg-luxury-black/90 border border-gold-500/10 px-2 py-1 text-[8px] font-mono text-gold-400/90 uppercase tracking-widest pointer-events-none z-10 shadow-lg">
+                    THIRUPPARANKUNDRAM, MADURAI
+                  </div>
                 </div>
-                <div className="absolute bottom-3 left-3 bg-luxury-black/90 border border-gold-500/10 px-2 py-1 text-[8px] font-mono text-gold-400/90 uppercase tracking-widest pointer-events-none z-10 shadow-lg">
-                  THIRUPPARANKUNDRAM, MADURAI
-                </div>
 
-                {/* Immersive CTA Hover Overlay */}
+                {/* Immersive CTA Google Maps Link Button inside, below the map image */}
                 <a
                   href={MAPS_URL}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="absolute inset-0 bg-luxury-black/30 hover:bg-luxury-black/10 transition-colors duration-500 flex flex-col items-center justify-center gap-2 group cursor-pointer z-10"
+                  className="flex items-center justify-center gap-2 w-full bg-luxury-black/95 hover:bg-gold-500/5 py-3 text-[10px] font-mono tracking-[0.2em] text-gold-300 hover:text-white uppercase border-t border-gold-500/15 transition-all duration-300 cursor-pointer"
                 >
-                  <div className="bg-luxury-gray/95 border border-gold-400/30 px-4 py-2 text-[10px] font-mono tracking-[0.2em] text-gold-300 uppercase flex items-center gap-2 group-hover:scale-105 group-hover:border-gold-300 transition-all duration-300 shadow-[0_4px_20px_rgba(0,0,0,0.8)] backdrop-blur-sm">
-                    <span>OPEN IN GOOGLE MAPS</span>
-                    <ExternalLink size={12} className="text-gold-400" />
-                  </div>
+                  <span>OPEN IN GOOGLE MAPS</span>
+                  <ExternalLink size={12} className="text-gold-400" />
                 </a>
               </div>
 
               {/* HQ details */}
-              <div className="flex flex-col gap-4 text-left border-t border-gold-500/10 pt-6 mt-6">
+              <div className="flex flex-col gap-4 text-left border-t border-gold-500/10 pt-5 mt-5">
                 <div className="flex items-start gap-3">
                   <MapPin className="text-gold-400 w-4 h-4 mt-1 flex-shrink-0" />
                   <div>
@@ -246,7 +246,7 @@ export default function Consultation({ selectedServiceId, onBookingSuccess, cmsD
             </div>
 
             {/* Social Media Redirection Links */}
-            <div className="border-t border-gold-500/10 pt-6 mt-6">
+            <div className="border-t border-gold-500/10 pt-5 mt-5">
               <h6 className="text-[10px] font-mono tracking-widest text-gold-400 uppercase mb-4">Connect With Us</h6>
               <div className="flex items-center gap-3">
                 <a
@@ -291,14 +291,14 @@ export default function Consultation({ selectedServiceId, onBookingSuccess, cmsD
           </div>
 
           {/* Right Column: Request Consultation Scheduler Form */}
-          <div className="lg:col-span-7 bg-luxury-gray border border-gold-500/10 p-8 md:p-10 relative shadow-[0_15px_50px_rgba(0,0,0,0.6)] flex flex-col justify-between">
+          <div className="lg:col-span-7 bg-luxury-gray border border-gold-500/10 p-6 md:p-8 relative shadow-[0_15px_50px_rgba(0,0,0,0.6)] flex flex-col justify-between">
             {/* Corner accent decorations */}
             <div className="absolute top-0 left-0 w-8 h-8 border-t border-l border-gold-400/20" />
             <div className="absolute top-0 right-0 w-8 h-8 border-t border-r border-gold-400/20" />
             <div className="absolute bottom-0 left-0 w-8 h-8 border-b border-l border-gold-400/20" />
             <div className="absolute bottom-0 right-0 w-8 h-8 border-b border-r border-gold-400/20" />
             
-            <div className="flex items-center gap-3 mb-8 text-left border-b border-gold-500/10 pb-4">
+            <div className="flex items-center gap-3 mb-6 text-left border-b border-gold-500/10 pb-4">
               <Calendar className="text-gold-400 w-5 h-5" />
               <h4 className="font-display text-sm font-semibold tracking-[0.25em] text-white uppercase">
                 REQUEST CONSULTATION
