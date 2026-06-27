@@ -5,21 +5,44 @@ import { CMSState, GalleryItem } from '../cmsData';
 
 interface PortfolioProps {
   cmsData: CMSState;
+  selectedCategory: string;
+  setSelectedCategory: (category: string) => void;
 }
 
-export default function Portfolio({ cmsData }: PortfolioProps) {
-  const [selectedCategory, setSelectedCategory] = useState<string>('All');
+export default function Portfolio({ cmsData, selectedCategory, setSelectedCategory }: PortfolioProps) {
   const [lightboxItem, setLightboxItem] = useState<GalleryItem | null>(null);
   const scrollContainerRef = useRef<HTMLDivElement>(null);
 
   const { heading, description, items, layout } = cmsData.gallery;
 
-  const categories = ['All', 'Weddings', 'Birthdays', 'Corporate Events', 'Catering'];
+  const defaultCategories = ['All', 'Weddings', 'Birthdays', 'Corporate Events', 'Catering'];
+  
+  // Dynamically merge default categories, actual item categories, and any actively selected custom category/service name
+  const categories = Array.from(new Set([
+    ...defaultCategories,
+    ...items.map(item => item.category).filter(Boolean),
+    ...(selectedCategory && selectedCategory !== 'All' ? [selectedCategory] : [])
+  ]));
 
-  // Filter items
+  // Smart matching filter
   const filteredItems = selectedCategory === 'All'
     ? items
-    : items.filter(item => item.category === selectedCategory);
+    : items.filter(item => {
+        const itemCatLower = (item.category || '').toLowerCase();
+        const selCatLower = selectedCategory.toLowerCase();
+        
+        // 1. Direct exact match
+        if (itemCatLower === selCatLower) return true;
+        
+        // 2. Cross-containment match
+        if (itemCatLower.includes(selCatLower) || selCatLower.includes(itemCatLower)) return true;
+        
+        // 3. Keyword proximity match (e.g. "Temple Processions" matching category "TEMPLE")
+        const selectWords = selCatLower.split(/[\s&,\(\)\/]+/).filter(w => w.length > 3);
+        const itemWords = `${itemCatLower} ${(item.title || '').toLowerCase()} ${(item.details || '').toLowerCase()}`.split(/[\s&,\(\)\/]+/);
+        
+        return selectWords.some(sw => itemWords.some(iw => iw.includes(sw) || sw.includes(iw)));
+      });
 
   // Scroll actions for the horizontal slider (exact match to visual arrows)
   const handleScroll = (direction: 'left' | 'right') => {

@@ -33,6 +33,7 @@ export default function Footer({ onNavigate, cmsData }: FooterProps) {
             size="sm" 
             logoText={cmsData.navbar.logoText} 
             logoSubtext={cmsData.navbar.logoSubtext} 
+            logoImage={cmsData.navbar.logoImage}
           />
           <p className="text-xs text-gray-400 leading-relaxed font-sans font-light mt-2 max-w-sm">
             {tagline}

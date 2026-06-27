@@ -47,6 +47,7 @@ export default function Header({ activeSection, onNavigate, onBookConsultation, 
               size="md" 
               logoText={cmsData.navbar.logoText} 
               logoSubtext={cmsData.navbar.logoSubtext} 
+              logoImage={cmsData.navbar.logoImage}
             />
           </button>
 

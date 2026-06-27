@@ -32,9 +32,30 @@ export default function AdminPanel({
   onAddNotes,
   onDeleteBooking,
   onAddManualBooking,
-  cmsData,
-  onUpdateCMS
+  cmsData: propCmsData,
+  onUpdateCMS: propOnUpdateCMS
 }: AdminPanelProps) {
+  const [cmsData, setCmsData] = useState<CMSState>(propCmsData);
+
+  // Sync from props if propCmsData changes externally (e.g. on Reset)
+  useEffect(() => {
+    setCmsData(propCmsData);
+  }, [propCmsData]);
+
+  // Debounced parent update so typing is ultra-responsive and doesn't lag the main app
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      if (JSON.stringify(cmsData) !== JSON.stringify(propCmsData)) {
+        propOnUpdateCMS(cmsData);
+      }
+    }, 400); // 400ms debounce
+    return () => clearTimeout(timer);
+  }, [cmsData, propOnUpdateCMS, propCmsData]);
+
+  const onUpdateCMS = (updated: CMSState) => {
+    setCmsData(updated);
+  };
+
   const [passcode, setPasscode] = useState('');
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [error, setError] = useState('');
@@ -49,6 +70,17 @@ export default function AdminPanel({
   // Selected booking for detailed view / edit
   const [selectedBooking, setSelectedBooking] = useState<ConsultationRequest | null>(null);
   const [adminNotesText, setAdminNotesText] = useState('');
+
+  // Double-click safety confirm states
+  const [bookingDeleteConfirmId, setBookingDeleteConfirmId] = useState<string | null>(null);
+  const [serviceDeleteConfirmId, setServiceDeleteConfirmId] = useState<string | null>(null);
+  const [galleryDeleteConfirmId, setGalleryDeleteConfirmId] = useState<string | null>(null);
+  const [testimonialDeleteConfirmId, setTestimonialDeleteConfirmId] = useState<string | null>(null);
+  const [resetConfirmActive, setResetConfirmActive] = useState(false);
+
+  // New project category helper states
+  const [newProjectCategory, setNewProjectCategory] = useState('Weddings');
+  const [newProjectCustomCategory, setNewProjectCustomCategory] = useState('');
 
   // Manual booking states
   const [newClientName, setNewClientName] = useState('');
@@ -763,14 +795,22 @@ export default function AdminPanel({
                             <div className="border-t border-gold-500/10 pt-4 mt-6 flex justify-between items-center">
                               <button
                                 onClick={() => {
-                                  if (confirm('Are you sure you want to permanently delete this record?')) {
+                                  if (bookingDeleteConfirmId === selectedBooking.id) {
                                     onDeleteBooking(selectedBooking.id);
                                     setSelectedBooking(null);
+                                    setBookingDeleteConfirmId(null);
+                                  } else {
+                                    setBookingDeleteConfirmId(selectedBooking.id);
+                                    setTimeout(() => setBookingDeleteConfirmId(null), 3000);
                                   }
                                 }}
-                                className="text-rose-400/80 hover:text-rose-400 text-[10px] font-mono tracking-wider flex items-center gap-1 uppercase transition-colors cursor-pointer"
+                                className={`text-[10px] font-mono tracking-wider flex items-center gap-1 uppercase transition-colors cursor-pointer ${
+                                  bookingDeleteConfirmId === selectedBooking.id
+                                    ? 'text-rose-500 font-bold animate-pulse'
+                                    : 'text-rose-400/80 hover:text-rose-400'
+                                }`}
                               >
-                                <Trash2 size={12} /> DELETE BOOKING
+                                <Trash2 size={12} /> {bookingDeleteConfirmId === selectedBooking.id ? 'CLICK AGAIN TO CONFIRM DELETE' : 'DELETE BOOKING'}
                               </button>
                               <span className="text-[8px] font-mono text-gray-500">ID: {selectedBooking.id}</span>
                             </div>
@@ -1032,14 +1072,22 @@ export default function AdminPanel({
                         <div className="flex items-center gap-2">
                           <button
                             onClick={() => {
-                              if (confirm('Are you sure you want to restore the entire landing page to its original template state? This will clear all dynamic overrides.')) {
+                              if (resetConfirmActive) {
+                                localStorage.removeItem('siddharth_vibe_cms_content');
                                 localStorage.removeItem('siddharth_vibe_cms_data');
                                 window.location.reload();
+                              } else {
+                                setResetConfirmActive(true);
+                                setTimeout(() => setResetConfirmActive(false), 3000);
                               }
                             }}
-                            className="px-3 py-1.5 border border-rose-500/30 hover:border-rose-500 text-rose-400 bg-rose-950/20 text-[10px] font-mono tracking-widest uppercase transition-colors"
+                            className={`px-3 py-1.5 border text-[10px] font-mono tracking-widest uppercase transition-all duration-300 ${
+                              resetConfirmActive
+                                ? 'border-red-500 bg-red-950/40 text-red-400 animate-pulse font-bold'
+                                : 'border-rose-500/30 hover:border-rose-500 text-rose-400 bg-rose-950/20'
+                            }`}
                           >
-                            RESET TO TEMPLATE
+                            {resetConfirmActive ? 'CLICK AGAIN TO RESTORE DEFAULTS' : 'RESTORE TEMPLATE DEFAULTS'}
                           </button>
                         </div>
                       </div>
@@ -1368,6 +1416,67 @@ export default function AdminPanel({
                                 >
                                   {cmsData.navbar.isSticky ? '● STICKY HEADER ACTIVE' : '○ STATIC HEADER OVERLAY'}
                                 </button>
+                              </div>
+                            </div>
+
+                            {/* Logo Image URL Option */}
+                            <div className="border-t border-gold-500/10 pt-4 space-y-3">
+                              <div className="space-y-1">
+                                <label className="text-[10px] font-mono tracking-wider text-gold-400 uppercase block">CUSTOM LOGO IMAGE URL</label>
+                                <p className="text-[9px] text-gray-500 font-sans">
+                                  Provide a web URL (HTTP/HTTPS link) of your company logo (PNG, JPG, SVG, or WEBP) to override and replace the default text & crown graphic logo.
+                                </p>
+                                <div className="flex gap-2">
+                                  <input
+                                    type="text"
+                                    placeholder="e.g. https://example.com/assets/logo.png"
+                                    value={cmsData.navbar.logoImage || ''}
+                                    onChange={(e) => {
+                                      onUpdateCMS({
+                                        ...cmsData,
+                                        navbar: { ...cmsData.navbar, logoImage: e.target.value || undefined }
+                                      });
+                                    }}
+                                    className="flex-1 bg-luxury-black border border-gold-500/15 px-3 py-2 text-xs text-white focus:outline-none font-mono"
+                                  />
+                                  {cmsData.navbar.logoImage && (
+                                    <button
+                                      onClick={() => {
+                                        onUpdateCMS({
+                                          ...cmsData,
+                                          navbar: { ...cmsData.navbar, logoImage: undefined }
+                                        });
+                                      }}
+                                      className="px-3 bg-rose-950/20 border border-rose-500/30 text-rose-400 text-[10px] font-mono uppercase hover:border-rose-500 transition-colors"
+                                    >
+                                      Clear Image
+                                    </button>
+                                  )}
+                                </div>
+                              </div>
+                            </div>
+
+                            {/* Navigation Links custom labels */}
+                            <div className="space-y-4 border-t border-gold-500/10 pt-4">
+                              <label className="text-[10px] font-mono tracking-wider text-gold-400 uppercase block">NAVIGATION HEADER LINK LABELS</label>
+                              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
+                                {cmsData.navbar.links.map((link) => (
+                                  <div key={link.id} className="space-y-1 bg-luxury-gray/30 p-2.5 border border-gold-500/5">
+                                    <span className="text-[8px] font-mono text-gray-500 uppercase">{link.id} Destination</span>
+                                    <input
+                                      type="text"
+                                      value={link.label}
+                                      onChange={(e) => {
+                                        const updatedLinks = cmsData.navbar.links.map(l => l.id === link.id ? { ...l, label: e.target.value.toUpperCase() } : l);
+                                        onUpdateCMS({
+                                          ...cmsData,
+                                          navbar: { ...cmsData.navbar, links: updatedLinks }
+                                        });
+                                      }}
+                                      className="w-full bg-luxury-black border border-gold-500/15 px-2 py-1 text-xs text-white focus:outline-none uppercase"
+                                    />
+                                  </div>
+                                ))}
                               </div>
                             </div>
                           </div>
@@ -1761,15 +1870,24 @@ export default function AdminPanel({
                                     <div className="absolute top-0 right-0 p-2 flex items-center gap-2">
                                       <button
                                         onClick={() => {
-                                          if (confirm('Are you sure you want to delete this service listing from your catalog?')) {
+                                          if (serviceDeleteConfirmId === item.id) {
                                             const updated = cmsData.services.items.filter(s => s.id !== item.id);
                                             onUpdateCMS({ ...cmsData, services: { ...cmsData.services, items: updated } });
+                                            setServiceDeleteConfirmId(null);
+                                          } else {
+                                            setServiceDeleteConfirmId(item.id);
+                                            setTimeout(() => setServiceDeleteConfirmId(null), 3000);
                                           }
                                         }}
-                                        className="p-1 text-gray-500 hover:text-rose-400 transition-colors"
+                                        className={`p-1 transition-colors flex items-center gap-1 text-[9px] font-mono ${
+                                          serviceDeleteConfirmId === item.id
+                                            ? 'text-rose-500 font-bold animate-pulse bg-rose-950/20 px-1.5'
+                                            : 'text-gray-500 hover:text-rose-400'
+                                        }`}
                                         title="Delete listing"
                                       >
                                         <Trash2 size={13} />
+                                        {serviceDeleteConfirmId === item.id && <span>Confirm?</span>}
                                       </button>
                                       <span className="text-[8px] font-mono text-gray-600">#{idx + 1}</span>
                                     </div>
@@ -1840,28 +1958,65 @@ export default function AdminPanel({
                         {/* SECTION 6: PORTFOLIO GRID */}
                         {cmsSection === 'portfolio' && (
                           <div className="space-y-6">
-                            <h4 className="text-xs font-mono text-gold-300 uppercase tracking-widest border-b border-gold-500/10 pb-2 flex justify-between items-center">
+                            <h4 className="text-xs font-mono text-gold-300 uppercase tracking-widest border-b border-gold-500/10 pb-2 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
                               <span className="flex items-center gap-2"><Sliders size={14} /> PORTFOLIO PROJECTS GALLERY</span>
-                              <button
-                                onClick={() => {
-                                  const newItem: GalleryItem = {
-                                    id: 'gal-' + Date.now(),
-                                    category: 'TEMPLE',
-                                    title: 'Grand Samy Oorvalam Festival',
-                                    imageUrl: 'https://images.unsplash.com/photo-1545232979-8bf34eb9757b?q=80&w=1200&auto=format&fit=crop',
-                                    location: 'Thirupparankundram, Madurai',
-                                    date: '2026-05',
-                                    details: 'An amazing traditional folk dance procession staging with massive hand-crafted mascot costumers.'
-                                  };
-                                  onUpdateCMS({
-                                    ...cmsData,
-                                    gallery: { ...cmsData.gallery, items: [...cmsData.gallery.items, newItem] }
-                                  });
-                                }}
-                                className="px-2.5 py-1 bg-gold-500 hover:bg-gold-400 text-luxury-black font-semibold text-[9px] font-mono tracking-widest uppercase flex items-center gap-1 cursor-pointer transition-colors"
-                              >
-                                <Plus size={10} /> ADD GALLERY PROJECT
-                              </button>
+                              
+                              <div className="flex flex-wrap items-center gap-2 bg-luxury-black/60 p-1.5 border border-gold-500/10 rounded">
+                                <span className="text-[9px] text-gray-400 font-mono">NEW PROJECT CATEGORY:</span>
+                                <select
+                                  value={newProjectCategory}
+                                  onChange={(e) => setNewProjectCategory(e.target.value)}
+                                  className="bg-luxury-gray border border-gold-500/20 px-2 py-1 text-[10px] text-white font-mono focus:outline-none focus:border-gold-400"
+                                >
+                                  <option value="Weddings">Weddings</option>
+                                  <option value="Corporate Events">Corporate Events</option>
+                                  <option value="Birthdays">Birthdays</option>
+                                  <option value="Catering">Catering</option>
+                                  <option value="TEMPLE">Temple / Processions</option>
+                                  <option value="Mascots">Mascots & Costumes</option>
+                                  <option value="Music & Dance">Music & Folk Dance</option>
+                                  <option value="Custom">Custom...</option>
+                                </select>
+                                
+                                {newProjectCategory === 'Custom' && (
+                                  <input
+                                    type="text"
+                                    placeholder="Enter Category Name..."
+                                    value={newProjectCustomCategory}
+                                    onChange={(e) => setNewProjectCustomCategory(e.target.value)}
+                                    className="bg-luxury-gray border border-gold-500/20 px-2 py-1 text-[10px] text-white font-mono focus:outline-none focus:border-gold-400 w-32"
+                                  />
+                                )}
+
+                                <button
+                                  onClick={() => {
+                                    const finalCategory = newProjectCategory === 'Custom' 
+                                      ? (newProjectCustomCategory.trim() || 'Custom') 
+                                      : newProjectCategory;
+                                    
+                                    const newItem: GalleryItem = {
+                                      id: 'gal-' + Date.now(),
+                                      category: finalCategory,
+                                      title: `New ${finalCategory} Event Showcase`,
+                                      imageUrl: 'https://images.unsplash.com/photo-1545232979-8bf34eb9757b?q=80&w=1200&auto=format&fit=crop',
+                                      location: 'Madurai, Tamil Nadu',
+                                      date: new Date().toISOString().slice(0, 7), // YYYY-MM
+                                      details: 'Enter high-quality custom event details here...'
+                                    };
+                                    onUpdateCMS({
+                                      ...cmsData,
+                                      gallery: { ...cmsData.gallery, items: [...cmsData.gallery.items, newItem] }
+                                    });
+                                    // Reset custom input if used
+                                    if (newProjectCategory === 'Custom') {
+                                      setNewProjectCustomCategory('');
+                                    }
+                                  }}
+                                  className="px-2.5 py-1.5 bg-gold-500 hover:bg-gold-400 text-luxury-black font-semibold text-[9px] font-mono tracking-widest uppercase flex items-center gap-1 cursor-pointer transition-colors"
+                                >
+                                  <Plus size={10} /> ADD GALLERY PROJECT
+                                </button>
+                              </div>
                             </h4>
 
                             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -1923,14 +2078,23 @@ export default function AdminPanel({
                                     <div className="absolute top-0 right-0 p-2 flex items-center gap-2">
                                       <button
                                         onClick={() => {
-                                          if (confirm('Are you sure you want to remove this project from your gallery showcase?')) {
+                                          if (galleryDeleteConfirmId === item.id) {
                                             const updated = cmsData.gallery.items.filter(g => g.id !== item.id);
                                             onUpdateCMS({ ...cmsData, gallery: { ...cmsData.gallery, items: updated } });
+                                            setGalleryDeleteConfirmId(null);
+                                          } else {
+                                            setGalleryDeleteConfirmId(item.id);
+                                            setTimeout(() => setGalleryDeleteConfirmId(null), 3000);
                                           }
                                         }}
-                                        className="p-1 text-gray-500 hover:text-rose-400 transition-colors"
+                                        className={`p-1 transition-colors flex items-center gap-1 text-[9px] font-mono ${
+                                          galleryDeleteConfirmId === item.id
+                                            ? 'text-rose-500 font-bold animate-pulse bg-rose-950/20 px-1.5'
+                                            : 'text-gray-500 hover:text-rose-400'
+                                        }`}
                                       >
                                         <Trash2 size={13} />
+                                        {galleryDeleteConfirmId === item.id && <span>Confirm?</span>}
                                       </button>
                                       <span className="text-[8px] font-mono text-gray-600">#{idx + 1}</span>
                                     </div>
@@ -2049,14 +2213,23 @@ export default function AdminPanel({
                                     <div className="absolute top-0 right-0 p-2 flex items-center gap-2">
                                       <button
                                         onClick={() => {
-                                          if (confirm('Are you sure you want to remove this client review?')) {
+                                          if (testimonialDeleteConfirmId === item.id) {
                                             const updated = cmsData.testimonials.items.filter(t => t.id !== item.id);
                                             onUpdateCMS({ ...cmsData, testimonials: { ...cmsData.testimonials, items: updated } });
+                                            setTestimonialDeleteConfirmId(null);
+                                          } else {
+                                            setTestimonialDeleteConfirmId(item.id);
+                                            setTimeout(() => setTestimonialDeleteConfirmId(null), 3000);
                                           }
                                         }}
-                                        className="p-1 text-gray-500 hover:text-rose-400 transition-colors"
+                                        className={`p-1 transition-colors flex items-center gap-1 text-[9px] font-mono ${
+                                          testimonialDeleteConfirmId === item.id
+                                            ? 'text-rose-500 font-bold animate-pulse bg-rose-950/20 px-1.5'
+                                            : 'text-gray-500 hover:text-rose-400'
+                                        }`}
                                       >
                                         <Trash2 size={13} />
+                                        {testimonialDeleteConfirmId === item.id && <span>Confirm?</span>}
                                       </button>
                                       <span className="text-[8px] font-mono text-gray-600">#{idx + 1}</span>
                                     </div>

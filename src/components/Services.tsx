@@ -9,9 +9,14 @@ import { CMSState, ServiceCard } from '../cmsData';
 interface ServicesProps {
   onSelectServiceForCalculator: (serviceId: string) => void;
   cmsData: CMSState;
+  onViewServicePortfolio?: (categoryName: string) => void;
 }
 
-export default function Services({ onSelectServiceForCalculator, cmsData }: ServicesProps) {
+export default function Services({ 
+  onSelectServiceForCalculator, 
+  cmsData,
+  onViewServicePortfolio 
+}: ServicesProps) {
   const [selectedService, setSelectedService] = useState<ServiceCard | null>(null);
   const { heading, subheading, items } = cmsData.services;
 
@@ -182,15 +187,28 @@ export default function Services({ onSelectServiceForCalculator, cmsData }: Serv
                   </div>
                   
                   {/* Action */}
-                  <button
-                    onClick={() => {
-                      onSelectServiceForCalculator(selectedService.id);
-                      setSelectedService(null);
-                    }}
-                    className="gold-shimmer-btn text-luxury-black text-xs font-semibold tracking-widest py-3 px-6 uppercase focus:outline-none hover:shadow-[0_0_15px_rgba(197,142,55,0.3)] transition-all cursor-pointer"
-                  >
-                    CUSTOMIZE PACKAGE
-                  </button>
+                  <div className="flex flex-wrap items-center gap-3">
+                    {onViewServicePortfolio && (
+                      <button
+                        onClick={() => {
+                          onViewServicePortfolio(selectedService.title);
+                          setSelectedService(null);
+                        }}
+                        className="border border-gold-400 text-gold-400 hover:bg-gold-500/10 text-xs font-semibold tracking-widest py-3 px-6 uppercase focus:outline-none transition-all cursor-pointer flex items-center justify-center gap-1.5"
+                      >
+                        SEE IMAGES
+                      </button>
+                    )}
+                    <button
+                      onClick={() => {
+                        onSelectServiceForCalculator(selectedService.id);
+                        setSelectedService(null);
+                      }}
+                      className="gold-shimmer-btn text-luxury-black text-xs font-semibold tracking-widest py-3 px-6 uppercase focus:outline-none hover:shadow-[0_0_15px_rgba(197,142,55,0.3)] transition-all cursor-pointer"
+                    >
+                      CUSTOMIZE PACKAGE
+                    </button>
+                  </div>
                 </div>
               </div>
             </motion.div>

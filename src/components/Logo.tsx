@@ -6,9 +6,10 @@ interface LogoProps {
   size?: 'sm' | 'md' | 'lg';
   logoText?: string;
   logoSubtext?: string;
+  logoImage?: string;
 }
 
-export default function Logo({ className = '', showText = true, size = 'md', logoText = "SIDDHARTH VIBE", logoSubtext = "EVENTS" }: LogoProps) {
+export default function Logo({ className = '', showText = true, size = 'md', logoText = "SIDDHARTH VIBE", logoSubtext = "EVENTS", logoImage }: LogoProps) {
   const getScale = () => {
     switch (size) {
       case 'sm': return 'scale-75 origin-left';
@@ -16,6 +17,19 @@ export default function Logo({ className = '', showText = true, size = 'md', log
       default: return 'scale-100';
     }
   };
+
+  if (logoImage) {
+    return (
+      <div className={`flex items-center select-none ${getScale()} ${className}`}>
+        <img
+          src={logoImage}
+          alt={logoText || "Siddharth Vibe Events"}
+          className="h-10 w-auto object-contain max-h-12"
+          referrerPolicy="no-referrer"
+        />
+      </div>
+    );
+  }
 
   return (
     <div className={`flex items-center gap-3 select-none ${getScale()} ${className}`}>

@@ -89,6 +89,7 @@ export default function App() {
   const [bookings, setBookings] = useState<ConsultationRequest[]>([]);
   const [isAdminOpen, setIsAdminOpen] = useState(false);
   const [cmsData, setCmsData] = useState<CMSState>(loadCMSData());
+  const [selectedPortfolioCategory, setSelectedPortfolioCategory] = useState<string>('All');
 
   // Initialize and load bookings
   useEffect(() => {
@@ -296,11 +297,19 @@ export default function App() {
         <Services
           onSelectServiceForCalculator={handleSelectServiceForCalculator}
           cmsData={cmsData}
+          onViewServicePortfolio={(categoryName) => {
+            setSelectedPortfolioCategory(categoryName);
+            handleNavigate('portfolio');
+          }}
         />
         
         <AboutUs cmsData={cmsData} />
         
-        <Portfolio cmsData={cmsData} />
+        <Portfolio 
+          cmsData={cmsData} 
+          selectedCategory={selectedPortfolioCategory}
+          setSelectedCategory={setSelectedPortfolioCategory}
+        />
         
         <Consultation
           selectedServiceId={selectedServiceId}
