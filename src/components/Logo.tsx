@@ -26,7 +26,7 @@ export default function Logo({ className = '', showText = true, size = 'md', log
           alt={logoText || "Siddharth Vibe Events"}
           className={
             size === 'lg'
-              ? "h-28 md:h-36 w-auto object-contain max-h-40 filter drop-shadow-[0_0_35px_rgba(197,142,55,0.65)]"
+              ? "h-28 md:h-36 w-auto object-contain max-h-40 filter drop-shadow-[0_0_15px_rgba(197,142,55,0.45)]"
               : size === 'sm'
                 ? "h-8 w-auto object-contain max-h-10"
                 : "h-11 w-auto object-contain max-h-14"

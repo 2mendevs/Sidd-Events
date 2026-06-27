@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { 
   X, Shield, Lock, Briefcase, Calendar, Users, DollarSign, 
-  Search, Filter, CheckCircle, Clock, Trash2, Edit3, Save, 
+  Search, Filter, CheckCircle, Clock, Trash2, Edit3, Save, Sparkles,
   Plus, TrendingUp, Award, Layers, MapPin, Phone, Mail, FileText, ChevronRight, Upload,
   Sliders, Palette, Image as ImageIcon, Type, Link as LinkIcon, MessageSquare, Compass, Settings
 } from 'lucide-react';
@@ -1238,6 +1238,7 @@ export default function AdminPanel({
                       <div className="flex flex-wrap gap-1.5 border-b border-gold-500/10 pb-3">
                         {([
                           { id: 'global', label: 'Theme & Fonts', icon: Palette },
+                          { id: 'entrance', label: 'Entrance Intro', icon: Sparkles },
                           { id: 'navbar', label: 'Navbar', icon: Compass },
                           { id: 'hero', label: 'Hero Cover', icon: ImageIcon },
                           { id: 'about', label: 'About Us', icon: Type },
@@ -1499,6 +1500,140 @@ export default function AdminPanel({
                                   className="gold-shimmer-btn text-luxury-black text-[10px] font-mono font-bold tracking-widest py-2.5 px-5 uppercase focus:outline-none hover:shadow-[0_0_15px_rgba(197,142,55,0.3)] transition-all cursor-pointer flex items-center gap-2"
                                 >
                                   <ImageIcon size={14} /> REPLAY CINEMATIC INTRO
+                                </button>
+                              </div>
+                            )}
+                          </div>
+                        )}
+
+                        {/* SECTION: ENTRANCE INTRO */}
+                        {cmsSection === 'entrance' && (
+                          <div className="space-y-6">
+                            <h4 className="text-xs font-mono text-gold-300 uppercase tracking-widest border-b border-gold-500/10 pb-2 flex items-center gap-2">
+                              <Sparkles size={14} /> LUXURY ENTRANCE INTRO LOADER
+                            </h4>
+
+                            <p className="text-xs text-gray-400 font-sans leading-relaxed">
+                              Configure the cinematic website introduction animation. This sequence features high-end golden dust, spinning geometric rings, and dynamic tracking text layouts for premium brand recognition.
+                            </p>
+
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                              <div className="space-y-1">
+                                <label className="text-[10px] font-mono tracking-wider text-gold-400 uppercase">Entrance Heading</label>
+                                <input
+                                  type="text"
+                                  value={cmsData.entranceSettings?.heading ?? ""}
+                                  onChange={(e) => {
+                                    onUpdateCMS({
+                                      ...cmsData,
+                                      entranceSettings: { 
+                                        ...(cmsData.entranceSettings || { heading: "", subtext: "", tagline: "", durationSeconds: 1.2, showSkipButton: true }), 
+                                        heading: e.target.value 
+                                      }
+                                    });
+                                  }}
+                                  className="w-full bg-luxury-black border border-gold-500/15 p-2 text-xs text-white focus:outline-none"
+                                />
+                              </div>
+
+                              <div className="space-y-1">
+                                <label className="text-[10px] font-mono tracking-wider text-gold-400 uppercase">Entrance Subtext</label>
+                                <input
+                                  type="text"
+                                  value={cmsData.entranceSettings?.subtext ?? ""}
+                                  onChange={(e) => {
+                                    onUpdateCMS({
+                                      ...cmsData,
+                                      entranceSettings: { 
+                                        ...(cmsData.entranceSettings || { heading: "", subtext: "", tagline: "", durationSeconds: 1.2, showSkipButton: true }), 
+                                        subtext: e.target.value 
+                                      }
+                                    });
+                                  }}
+                                  className="w-full bg-luxury-black border border-gold-500/15 p-2 text-xs text-white focus:outline-none"
+                                />
+                              </div>
+
+                              <div className="md:col-span-2 space-y-1">
+                                <label className="text-[10px] font-mono tracking-wider text-gold-400 uppercase">Entrance Bottom Tagline</label>
+                                <input
+                                  type="text"
+                                  value={cmsData.entranceSettings?.tagline ?? ""}
+                                  onChange={(e) => {
+                                    onUpdateCMS({
+                                      ...cmsData,
+                                      entranceSettings: { 
+                                        ...(cmsData.entranceSettings || { heading: "", subtext: "", tagline: "", durationSeconds: 1.2, showSkipButton: true }), 
+                                        tagline: e.target.value 
+                                      }
+                                    });
+                                  }}
+                                  className="w-full bg-luxury-black border border-gold-500/15 p-2 text-xs text-white focus:outline-none"
+                                />
+                              </div>
+
+                              <div className="space-y-1">
+                                <label className="text-[10px] font-mono tracking-wider text-gold-400 uppercase block">Loading Duration (seconds)</label>
+                                <div className="flex items-center gap-2">
+                                  <input
+                                    type="number"
+                                    step="0.1"
+                                    min="0.5"
+                                    max="8.0"
+                                    value={cmsData.entranceSettings?.durationSeconds ?? 1.2}
+                                    onChange={(e) => {
+                                      const val = parseFloat(e.target.value) || 1.2;
+                                      onUpdateCMS({
+                                        ...cmsData,
+                                        entranceSettings: { 
+                                          ...(cmsData.entranceSettings || { heading: "", subtext: "", tagline: "", durationSeconds: 1.2, showSkipButton: true }), 
+                                          durationSeconds: val 
+                                        }
+                                      });
+                                    }}
+                                    className="w-24 bg-luxury-black border border-gold-500/15 p-2 text-xs text-white focus:outline-none"
+                                  />
+                                  <span className="text-[10px] text-gray-500 font-mono">Recommended: 1.0 - 2.0s</span>
+                                </div>
+                              </div>
+
+                              <div className="space-y-1 flex flex-col justify-center">
+                                <label className="text-[10px] font-mono tracking-wider text-gold-400 uppercase block mb-1">Interactive Elements</label>
+                                <label className="flex items-center gap-2 text-xs text-gray-300 cursor-pointer select-none">
+                                  <input
+                                    type="checkbox"
+                                    checked={cmsData.entranceSettings?.showSkipButton !== false}
+                                    onChange={(e) => {
+                                      onUpdateCMS({
+                                        ...cmsData,
+                                        entranceSettings: { 
+                                          ...(cmsData.entranceSettings || { heading: "", subtext: "", tagline: "", durationSeconds: 1.2, showSkipButton: true }), 
+                                          showSkipButton: e.target.checked 
+                                        }
+                                      });
+                                    }}
+                                    className="accent-gold-500"
+                                  />
+                                  <span>Show "Skip Intro" Button</span>
+                                </label>
+                              </div>
+                            </div>
+
+                            {/* Entrance Animation Trigger Section */}
+                            {onReplayIntro && (
+                              <div className="border-t border-gold-500/10 pt-5 mt-5 space-y-3">
+                                <label className="text-[10px] font-mono tracking-wider text-gold-400 uppercase block">
+                                  PREVIEW CINEMATIC EXPERIENCE
+                                </label>
+                                <p className="text-[9px] text-gray-500 font-sans">
+                                  Click below to replay the opening sequence and see your custom changes instantly.
+                                </p>
+                                <button
+                                  type="button"
+                                  onClick={onReplayIntro}
+                                  className="gold-shimmer-btn text-luxury-black text-[10px] font-mono font-bold tracking-widest py-2.5 px-5 uppercase focus:outline-none hover:shadow-[0_0_15px_rgba(197,142,55,0.3)] transition-all cursor-pointer flex items-center gap-2"
+                                >
+                                  <Sparkles size={14} /> REPLAY CINEMATIC INTRO
                                 </button>
                               </div>
                             )}

@@ -147,6 +147,13 @@ export interface CMSState {
     bodyFont: 'sans' | 'mono' | 'serif';
     isDarkMode: boolean;
   };
+  entranceSettings: {
+    heading: string;
+    subtext: string;
+    tagline: string;
+    durationSeconds: number; // e.g., 1.5
+    showSkipButton: boolean;
+  };
 }
 
 export const DEFAULT_CMS_DATA: CMSState = {
@@ -574,6 +581,13 @@ export const DEFAULT_CMS_DATA: CMSState = {
     headingFont: "cinzel",
     bodyFont: "sans",
     isDarkMode: true,
+  },
+  entranceSettings: {
+    heading: "SIDDHARTH VIBE",
+    subtext: "EVENTS",
+    tagline: "EXPERIENCE LUXURY EVENTS • MADURAI & BEYOND",
+    durationSeconds: 1.2, // fast & snappy, but still elegant
+    showSkipButton: true,
   }
 };
 
@@ -602,6 +616,7 @@ export function loadCMSData(): CMSState {
       contact: { ...DEFAULT_CMS_DATA.contact, ...parsed.contact },
       footer: { ...DEFAULT_CMS_DATA.footer, ...parsed.footer },
       globalSettings: { ...DEFAULT_CMS_DATA.globalSettings, ...parsed.globalSettings },
+      entranceSettings: { ...DEFAULT_CMS_DATA.entranceSettings, ...parsed.entranceSettings },
     };
   } catch (e) {
     return DEFAULT_CMS_DATA;
