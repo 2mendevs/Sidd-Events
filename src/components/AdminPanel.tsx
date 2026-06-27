@@ -2,11 +2,12 @@ import React, { useState, useEffect } from 'react';
 import { 
   X, Shield, Lock, Briefcase, Calendar, Users, DollarSign, 
   Search, Filter, CheckCircle, Clock, Trash2, Edit3, Save, 
-  Plus, TrendingUp, Award, Layers, MapPin, Phone, Mail, FileText, ChevronRight
+  Plus, TrendingUp, Award, Layers, MapPin, Phone, Mail, FileText, ChevronRight,
+  Sliders, Palette, Image as ImageIcon, Type, Link as LinkIcon, MessageSquare, Compass, Settings
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { ConsultationRequest } from '../types';
-import { SERVICE_ITEMS } from '../data';
+import { CMSState, ServiceCard, GalleryItem } from '../cmsData';
 
 interface AdminPanelProps {
   isOpen: boolean;
@@ -16,6 +17,8 @@ interface AdminPanelProps {
   onAddNotes: (id: string, notes: string) => void;
   onDeleteBooking: (id: string) => void;
   onAddManualBooking: (booking: ConsultationRequest) => void;
+  cmsData: CMSState;
+  onUpdateCMS: (data: CMSState) => void;
 }
 
 // Passcode: admin (very easy for client to access but keeps it secure from random visitors)
@@ -28,12 +31,15 @@ export default function AdminPanel({
   onUpdateStatus,
   onAddNotes,
   onDeleteBooking,
-  onAddManualBooking
+  onAddManualBooking,
+  cmsData,
+  onUpdateCMS
 }: AdminPanelProps) {
   const [passcode, setPasscode] = useState('');
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [error, setError] = useState('');
-  const [activeTab, setActiveTab] = useState<'dashboard' | 'bookings' | 'calendar' | 'new-booking'>('dashboard');
+  const [activeTab, setActiveTab] = useState<'dashboard' | 'bookings' | 'calendar' | 'new-booking' | 'cms'>('dashboard');
+  const [cmsSection, setCmsSection] = useState<'global' | 'navbar' | 'hero' | 'about' | 'services' | 'portfolio' | 'testimonials' | 'contact'>('global');
 
   // Filter & Search states
   const [searchQuery, setSearchQuery] = useState('');
@@ -48,7 +54,7 @@ export default function AdminPanel({
   const [newClientName, setNewClientName] = useState('');
   const [newClientEmail, setNewClientEmail] = useState('');
   const [newClientPhone, setNewClientPhone] = useState('');
-  const [newEventType, setNewEventType] = useState(SERVICE_ITEMS[0]?.title || 'Temple Processions (Sammy Oorvalam)');
+  const [newEventType, setNewEventType] = useState(cmsData.services.items[0]?.title || 'Temple Processions (Sammy Oorvalam)');
   const [newEventDate, setNewEventDate] = useState('');
   const [newGuestCount, setNewGuestCount] = useState(150);
   const [newCatering, setNewCatering] = useState('Premium Gourmet Buffet');
@@ -102,7 +108,7 @@ export default function AdminPanel({
     }
 
     // Dynamic quote calculation
-    const baseService = SERVICE_ITEMS.find(s => s.title.toUpperCase() === newEventType.toUpperCase()) || SERVICE_ITEMS[0];
+    const baseService = cmsData.services.items.find(s => s.title.toUpperCase() === newEventType.toUpperCase()) || cmsData.services.items[0];
     const basePrice = baseService ? baseService.basePrice : 25000;
     const cateringPerGuest = newCatering.includes('Gourmet') ? 1200 : 800;
     const estimatedCatering = cateringPerGuest * newGuestCount;
@@ -163,6 +169,27 @@ export default function AdminPanel({
 
     return matchesSearch && matchesStatus && matchesType;
   });
+
+  // Background presets for easy client editing
+  const HERO_BACKGROUND_PRESETS = [
+    { name: 'Warm Royal Golden Wedding', url: 'https://images.unsplash.com/photo-1607190074257-dd4b7af0309f?q=80&w=1920&auto=format&fit=crop' },
+    { name: 'Traditional Procession Temple Entry', url: 'https://images.unsplash.com/photo-1545232979-8bf34eb9757b?q=80&w=1920&auto=format&fit=crop' },
+    { name: 'Vibrant Flower Hangings & Lighting', url: 'https://images.unsplash.com/photo-1519741497674-611481863552?q=80&w=1920&auto=format&fit=crop' },
+    { name: 'Exotic Premium Stage Staging', url: 'https://images.unsplash.com/photo-1511795409834-ef04bbd61622?q=80&w=1920&auto=format&fit=crop' },
+  ];
+
+  const BRAND_COLOR_PRESETS = [
+    { name: 'Imperial Gold Shimmer', primary: '#C58E37', secondary: '#F3E5AB' },
+    { name: 'Royal Crimson Accent', primary: '#9E1A1A', secondary: '#E57373' },
+    { name: 'Madurai Peacock Blue', primary: '#1A539E', secondary: '#90CAF9' },
+    { name: 'Heritage Emerald Green', primary: '#1A9E58', secondary: '#A5D6A7' },
+    { name: 'Modern Rose Platinum', primary: '#D4AF37', secondary: '#ECEFF1' },
+  ];
+
+  const ICON_OPTIONS = [
+    'Sparkles', 'Music', 'Layers', 'Award', 'Camera', 'Heart', 
+    'Mic', 'Disc', 'Coffee', 'Utensils', 'Crown', 'Flame'
+  ];
 
   if (!isOpen) return null;
 
@@ -310,6 +337,18 @@ export default function AdminPanel({
                 >
                   <Plus size={14} className={activeTab === 'new-booking' ? 'text-gold-300' : 'text-gray-400'} />
                   ADD INQUIRY
+                </button>
+
+                <button
+                  onClick={() => setActiveTab('cms')}
+                  className={`w-full text-left px-4 py-3 text-xs tracking-wider font-medium flex items-center gap-3 transition-colors cursor-pointer ${
+                    activeTab === 'cms' 
+                      ? 'bg-gold-500/10 text-gold-300 border-l-2 border-gold-400 font-semibold' 
+                      : 'text-gray-400 hover:text-white hover:bg-white/5'
+                  }`}
+                >
+                  <Sliders size={14} className={activeTab === 'cms' ? 'text-gold-300' : 'text-gray-400'} />
+                  LIVE SITE EDITOR
                 </button>
               </div>
 
@@ -531,7 +570,7 @@ export default function AdminPanel({
                             className="w-full bg-luxury-black border border-gold-500/15 focus:border-gold-400 px-3 py-2 text-xs text-gray-300 focus:outline-none font-sans"
                           >
                             <option value="all">All Event Types</option>
-                            {SERVICE_ITEMS.map((srv) => (
+                            {cmsData.services.items.map((srv) => (
                               <option key={srv.id} value={srv.title.toLowerCase()}>
                                 {srv.title}
                               </option>
@@ -903,7 +942,7 @@ export default function AdminPanel({
                               onChange={(e) => setNewEventType(e.target.value)}
                               className="w-full bg-luxury-black border border-gold-500/15 focus:border-gold-400 px-3.5 py-2 text-xs text-gray-300 focus:outline-none"
                             >
-                              {SERVICE_ITEMS.map((srv) => (
+                              {cmsData.services.items.map((srv) => (
                                 <option key={srv.id} value={srv.title}>
                                   {srv.title}
                                 </option>
@@ -969,6 +1008,1195 @@ export default function AdminPanel({
                           PROVISION BOOKING RECORD
                         </button>
                       </form>
+                    </motion.div>
+                  )}
+
+                  {/* TAB 5: CMS SITE CONTENT EDITOR */}
+                  {activeTab === 'cms' && (
+                    <motion.div
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0, y: -10 }}
+                      className="space-y-6 text-left"
+                    >
+                      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+                        <div>
+                          <h3 className="font-display text-base font-semibold tracking-wider text-white uppercase">
+                            LIVE SITE CMS EDITOR
+                          </h3>
+                          <p className="text-xs text-gray-400 font-sans font-light mt-0.5">
+                            Modify styles, text copy, service catalogs, layouts, and review listings in real-time.
+                          </p>
+                        </div>
+                        
+                        <div className="flex items-center gap-2">
+                          <button
+                            onClick={() => {
+                              if (confirm('Are you sure you want to restore the entire landing page to its original template state? This will clear all dynamic overrides.')) {
+                                localStorage.removeItem('siddharth_vibe_cms_data');
+                                window.location.reload();
+                              }
+                            }}
+                            className="px-3 py-1.5 border border-rose-500/30 hover:border-rose-500 text-rose-400 bg-rose-950/20 text-[10px] font-mono tracking-widest uppercase transition-colors"
+                          >
+                            RESET TO TEMPLATE
+                          </button>
+                        </div>
+                      </div>
+
+                      {/* Section Navigation Pills */}
+                      <div className="flex flex-wrap gap-1.5 border-b border-gold-500/10 pb-3">
+                        {([
+                          { id: 'global', label: 'Theme & Fonts', icon: Palette },
+                          { id: 'navbar', label: 'Navbar', icon: Compass },
+                          { id: 'hero', label: 'Hero Cover', icon: ImageIcon },
+                          { id: 'about', label: 'About Us', icon: Type },
+                          { id: 'services', label: 'Services', icon: Briefcase },
+                          { id: 'portfolio', label: 'Portfolio Grid', icon: Sliders },
+                          { id: 'testimonials', label: 'Client Reviews', icon: MessageSquare },
+                          { id: 'contact', label: 'Contact Coordinates', icon: Settings },
+                        ] as const).map((sec) => {
+                          const Icon = sec.icon;
+                          const isActive = cmsSection === sec.id;
+                          return (
+                            <button
+                              key={sec.id}
+                              onClick={() => setCmsSection(sec.id)}
+                              className={`flex items-center gap-1.5 px-3 py-2 text-[10px] font-mono tracking-widest uppercase border transition-colors cursor-pointer ${
+                                isActive
+                                  ? 'bg-gold-500/15 border-gold-400 text-gold-300 font-semibold'
+                                  : 'bg-luxury-gray/40 border-gold-500/10 text-gray-400 hover:text-white hover:bg-luxury-gray'
+                              }`}
+                            >
+                              <Icon size={12} />
+                              {sec.label}
+                            </button>
+                          );
+                        })}
+                      </div>
+
+                      <div className="bg-luxury-gray border border-gold-500/10 p-6 md:p-8 relative">
+                        <div className="absolute top-0 left-0 w-6 h-6 border-t border-l border-gold-400/35" />
+
+                        {/* SECTION 1: GLOBAL STYLING */}
+                        {cmsSection === 'global' && (
+                          <div className="space-y-6">
+                            <h4 className="text-xs font-mono text-gold-300 uppercase tracking-widest border-b border-gold-500/10 pb-2 flex items-center gap-2">
+                              <Palette size={14} /> BRAND STYLING & PALETTE PRESETS
+                            </h4>
+
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                              {/* Dark Mode vs Light Mode */}
+                              <div className="space-y-2">
+                                <label className="text-[10px] font-mono tracking-wider text-gold-400 uppercase block">
+                                  VISUAL INTERFACE STYLE MODE
+                                </label>
+                                <div className="grid grid-cols-2 gap-2">
+                                  <button
+                                    onClick={() => {
+                                      onUpdateCMS({
+                                        ...cmsData,
+                                        globalSettings: {
+                                          ...cmsData.globalSettings,
+                                          isDarkMode: true
+                                        }
+                                      });
+                                    }}
+                                    className={`py-2 text-xs font-mono uppercase border transition-colors cursor-pointer ${
+                                      cmsData.globalSettings.isDarkMode
+                                        ? 'bg-gold-500/15 border-gold-400 text-gold-300 font-bold'
+                                        : 'bg-luxury-black border-gold-500/10 text-gray-400'
+                                    }`}
+                                  >
+                                    🌌 COSMIC OBSIDIAN (DARK)
+                                  </button>
+                                  <button
+                                    onClick={() => {
+                                      onUpdateCMS({
+                                        ...cmsData,
+                                        globalSettings: {
+                                          ...cmsData.globalSettings,
+                                          isDarkMode: false
+                                        }
+                                      });
+                                    }}
+                                    className={`py-2 text-xs font-mono uppercase border transition-colors cursor-pointer ${
+                                      !cmsData.globalSettings.isDarkMode
+                                        ? 'bg-gold-500/15 border-gold-400 text-gold-300 font-bold'
+                                        : 'bg-luxury-black border-gold-500/10 text-gray-400'
+                                    }`}
+                                  >
+                                    👑 ROYAL CREAM (LIGHT)
+                                  </button>
+                                </div>
+                                <p className="text-[10px] text-gray-500 font-sans italic mt-1">
+                                  Cosmic Obsidian sets an eye-safe deep slate background. Royal Cream triggers high-contrast ivory, ideal for daytime demonstrations.
+                                </p>
+                              </div>
+
+                              {/* Palette Preset Quick selector */}
+                              <div className="space-y-2">
+                                <label className="text-[10px] font-mono tracking-wider text-gold-400 uppercase block">
+                                  ACCENT PALETTE PRESETS
+                                </label>
+                                <div className="grid grid-cols-2 md:grid-cols-3 gap-1.5">
+                                  {BRAND_COLOR_PRESETS.map((preset) => (
+                                    <button
+                                      key={preset.name}
+                                      onClick={() => {
+                                        onUpdateCMS({
+                                          ...cmsData,
+                                          globalSettings: {
+                                            ...cmsData.globalSettings,
+                                            primaryColor: preset.primary,
+                                            secondaryColor: preset.secondary
+                                          }
+                                        });
+                                      }}
+                                      className="bg-luxury-black border border-gold-500/10 hover:border-gold-400 p-2 text-left transition-all duration-300 rounded cursor-pointer"
+                                    >
+                                      <div className="text-[9px] font-mono font-medium text-white truncate uppercase">{preset.name}</div>
+                                      <div className="flex gap-1 mt-1">
+                                        <div className="w-4 h-2" style={{ backgroundColor: preset.primary }} />
+                                        <div className="w-4 h-2" style={{ backgroundColor: preset.secondary }} />
+                                      </div>
+                                    </button>
+                                  ))}
+                                </div>
+                              </div>
+                            </div>
+
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 border-t border-gold-500/10 pt-4">
+                              {/* Custom Accent Colors */}
+                              <div className="space-y-3">
+                                <label className="text-[10px] font-mono tracking-wider text-gold-400 uppercase block">
+                                  CUSTOM BRAND OVERRIDES
+                                </label>
+                                <div className="flex items-center gap-4">
+                                  <div className="flex-1 space-y-1">
+                                    <span className="text-[9px] font-mono text-gray-500 block">PRIMARY GLOW ACCENT</span>
+                                    <div className="flex items-center gap-2">
+                                      <input
+                                        type="color"
+                                        value={cmsData.globalSettings.primaryColor}
+                                        onChange={(e) => {
+                                          onUpdateCMS({
+                                            ...cmsData,
+                                            globalSettings: {
+                                              ...cmsData.globalSettings,
+                                              primaryColor: e.target.value
+                                            }
+                                          });
+                                        }}
+                                        className="w-8 h-8 rounded border border-gold-500/20 bg-transparent cursor-pointer"
+                                      />
+                                      <input
+                                        type="text"
+                                        value={cmsData.globalSettings.primaryColor}
+                                        onChange={(e) => {
+                                          onUpdateCMS({
+                                            ...cmsData,
+                                            globalSettings: {
+                                              ...cmsData.globalSettings,
+                                              primaryColor: e.target.value
+                                            }
+                                          });
+                                        }}
+                                        className="flex-grow bg-luxury-black border border-gold-500/15 p-1.5 text-xs text-white font-mono uppercase"
+                                      />
+                                    </div>
+                                  </div>
+
+                                  <div className="flex-1 space-y-1">
+                                    <span className="text-[9px] font-mono text-gray-500 block">SECONDARY SUB-GLOW</span>
+                                    <div className="flex items-center gap-2">
+                                      <input
+                                        type="color"
+                                        value={cmsData.globalSettings.secondaryColor}
+                                        onChange={(e) => {
+                                          onUpdateCMS({
+                                            ...cmsData,
+                                            globalSettings: {
+                                              ...cmsData.globalSettings,
+                                              secondaryColor: e.target.value
+                                            }
+                                          });
+                                        }}
+                                        className="w-8 h-8 rounded border border-gold-500/20 bg-transparent cursor-pointer"
+                                      />
+                                      <input
+                                        type="text"
+                                        value={cmsData.globalSettings.secondaryColor}
+                                        onChange={(e) => {
+                                          onUpdateCMS({
+                                            ...cmsData,
+                                            globalSettings: {
+                                              ...cmsData.globalSettings,
+                                              secondaryColor: e.target.value
+                                            }
+                                          });
+                                        }}
+                                        className="flex-grow bg-luxury-black border border-gold-500/15 p-1.5 text-xs text-white font-mono uppercase"
+                                      />
+                                    </div>
+                                  </div>
+                                </div>
+                              </div>
+
+                              {/* Typography Engine options */}
+                              <div className="space-y-3">
+                                <label className="text-[10px] font-mono tracking-wider text-gold-400 uppercase block">
+                                  TYPOGRAPHY FONTS SELECTOR
+                                </label>
+                                <div className="grid grid-cols-2 gap-4">
+                                  <div className="space-y-1">
+                                    <span className="text-[9px] font-mono text-gray-500 block">DISPLAY HEADINGS</span>
+                                    <select
+                                      value={cmsData.globalSettings.headingFont}
+                                      onChange={(e) => {
+                                        onUpdateCMS({
+                                          ...cmsData,
+                                          globalSettings: {
+                                            ...cmsData.globalSettings,
+                                            headingFont: e.target.value as any
+                                          }
+                                        });
+                                      }}
+                                      className="w-full bg-luxury-black border border-gold-500/15 p-2 text-xs text-white focus:outline-none"
+                                    >
+                                      <option value="cinzel">Cinzel (Luxury Serif)</option>
+                                      <option value="serif">Cormorant Garamond (Classical)</option>
+                                      <option value="sans-serif">Inter Grotesque (Modern Swiss)</option>
+                                    </select>
+                                  </div>
+
+                                  <div className="space-y-1">
+                                    <span className="text-[9px] font-mono text-gray-500 block">BODY & DETAILS</span>
+                                    <select
+                                      value={cmsData.globalSettings.bodyFont}
+                                      onChange={(e) => {
+                                        onUpdateCMS({
+                                          ...cmsData,
+                                          globalSettings: {
+                                            ...cmsData.globalSettings,
+                                            bodyFont: e.target.value as any
+                                          }
+                                        });
+                                      }}
+                                      className="w-full bg-luxury-black border border-gold-500/15 p-2 text-xs text-white focus:outline-none"
+                                    >
+                                      <option value="sans-serif">Inter (Highly Legible Sans)</option>
+                                      <option value="serif">Cormorant Garamond (Elegant Serif)</option>
+                                      <option value="mono">JetBrains Mono (Technical Monospace)</option>
+                                    </select>
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                        )}
+
+                        {/* SECTION 2: NAVBAR */}
+                        {cmsSection === 'navbar' && (
+                          <div className="space-y-6">
+                            <h4 className="text-xs font-mono text-gold-300 uppercase tracking-widest border-b border-gold-500/10 pb-2 flex items-center gap-2">
+                              <Compass size={14} /> HEADER NAVIGATION BAR SETTINGS
+                            </h4>
+
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                              <div className="space-y-1">
+                                <label className="text-[10px] font-mono tracking-wider text-gold-400 uppercase">Logo Title Text</label>
+                                <input
+                                  type="text"
+                                  value={cmsData.navbar.logoText}
+                                  onChange={(e) => {
+                                    onUpdateCMS({
+                                      ...cmsData,
+                                      navbar: { ...cmsData.navbar, logoText: e.target.value }
+                                    });
+                                  }}
+                                  className="w-full bg-luxury-black border border-gold-500/15 px-3 py-2 text-xs text-white focus:outline-none"
+                                />
+                              </div>
+
+                              <div className="space-y-1">
+                                <label className="text-[10px] font-mono tracking-wider text-gold-400 uppercase">Logo Subheading/Tagline</label>
+                                <input
+                                  type="text"
+                                  value={cmsData.navbar.logoSubtext}
+                                  onChange={(e) => {
+                                    onUpdateCMS({
+                                      ...cmsData,
+                                      navbar: { ...cmsData.navbar, logoSubtext: e.target.value }
+                                    });
+                                  }}
+                                  className="w-full bg-luxury-black border border-gold-500/15 px-3 py-2 text-xs text-white focus:outline-none"
+                                />
+                              </div>
+                            </div>
+
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 border-t border-gold-500/10 pt-4">
+                              <div className="space-y-1">
+                                <label className="text-[10px] font-mono tracking-wider text-gold-400 uppercase">Header CTA button label</label>
+                                <input
+                                  type="text"
+                                  value={cmsData.navbar.ctaText}
+                                  onChange={(e) => {
+                                    onUpdateCMS({
+                                      ...cmsData,
+                                      navbar: { ...cmsData.navbar, ctaText: e.target.value }
+                                    });
+                                  }}
+                                  className="w-full bg-luxury-black border border-gold-500/15 px-3 py-2 text-xs text-white focus:outline-none"
+                                />
+                              </div>
+
+                              <div className="space-y-2">
+                                <label className="text-[10px] font-mono tracking-wider text-gold-400 uppercase block">Sticky behavior state</label>
+                                <button
+                                  onClick={() => {
+                                    onUpdateCMS({
+                                      ...cmsData,
+                                      navbar: { ...cmsData.navbar, isSticky: !cmsData.navbar.isSticky }
+                                    });
+                                  }}
+                                  className={`w-full py-2 text-xs font-mono uppercase border transition-colors cursor-pointer ${
+                                    cmsData.navbar.isSticky
+                                      ? 'bg-gold-500/15 border-gold-400 text-gold-300 font-bold'
+                                      : 'bg-luxury-black border-gold-500/10 text-gray-400'
+                                  }`}
+                                >
+                                  {cmsData.navbar.isSticky ? '● STICKY HEADER ACTIVE' : '○ STATIC HEADER OVERLAY'}
+                                </button>
+                              </div>
+                            </div>
+                          </div>
+                        )}
+
+                        {/* SECTION 3: HERO COVER */}
+                        {cmsSection === 'hero' && (
+                          <div className="space-y-6">
+                            <h4 className="text-xs font-mono text-gold-300 uppercase tracking-widest border-b border-gold-500/10 pb-2 flex items-center gap-2">
+                              <ImageIcon size={14} /> HERO BACKGROUND & DISPLAY HEADLINES
+                            </h4>
+
+                            <div className="space-y-4">
+                              <div className="space-y-1">
+                                <label className="text-[10px] font-mono tracking-wider text-gold-400 uppercase">Main Headline (H1)</label>
+                                <textarea
+                                  rows={2}
+                                  value={cmsData.hero.headline}
+                                  onChange={(e) => {
+                                    onUpdateCMS({
+                                      ...cmsData,
+                                      hero: { ...cmsData.hero, headline: e.target.value }
+                                    });
+                                  }}
+                                  className="w-full bg-luxury-black border border-gold-500/15 p-3 text-xs text-white focus:outline-none"
+                                />
+                              </div>
+
+                              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div className="space-y-1">
+                                  <label className="text-[10px] font-mono tracking-wider text-gold-400 uppercase">Top Accent Tagline 1</label>
+                                  <input
+                                    type="text"
+                                    value={cmsData.hero.taglineLine1}
+                                    onChange={(e) => {
+                                      onUpdateCMS({
+                                        ...cmsData,
+                                        hero: { ...cmsData.hero, taglineLine1: e.target.value }
+                                      });
+                                    }}
+                                    className="w-full bg-luxury-black border border-gold-500/15 px-3 py-2 text-xs text-white focus:outline-none"
+                                  />
+                                </div>
+
+                                <div className="space-y-1">
+                                  <label className="text-[10px] font-mono tracking-wider text-gold-400 uppercase">Top Accent Tagline 2</label>
+                                  <input
+                                    type="text"
+                                    value={cmsData.hero.taglineLine2}
+                                    onChange={(e) => {
+                                      onUpdateCMS({
+                                        ...cmsData,
+                                        hero: { ...cmsData.hero, taglineLine2: e.target.value }
+                                      });
+                                    }}
+                                    className="w-full bg-luxury-black border border-gold-500/15 px-3 py-2 text-xs text-white focus:outline-none"
+                                  />
+                                </div>
+                              </div>
+
+                              <div className="space-y-1">
+                                <label className="text-[10px] font-mono tracking-wider text-gold-400 uppercase">Subheadline / Narrative description</label>
+                                <textarea
+                                  rows={2}
+                                  value={cmsData.hero.subheadline}
+                                  onChange={(e) => {
+                                    onUpdateCMS({
+                                      ...cmsData,
+                                      hero: { ...cmsData.hero, subheadline: e.target.value }
+                                    });
+                                  }}
+                                  className="w-full bg-luxury-black border border-gold-500/15 p-3 text-xs text-white focus:outline-none"
+                                />
+                              </div>
+                            </div>
+
+                            <div className="border-t border-gold-500/10 pt-4 space-y-4">
+                              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                {/* Hero Presets */}
+                                <div className="space-y-2">
+                                  <label className="text-[10px] font-mono tracking-wider text-gold-400 uppercase block">Background Presets</label>
+                                  <div className="space-y-1.5">
+                                    {HERO_BACKGROUND_PRESETS.map((preset) => (
+                                      <button
+                                        key={preset.name}
+                                        onClick={() => {
+                                          onUpdateCMS({
+                                            ...cmsData,
+                                            hero: { ...cmsData.hero, imageUrl: preset.url }
+                                          });
+                                        }}
+                                        className={`w-full text-left p-1.5 border flex items-center gap-3 transition-all cursor-pointer ${
+                                          cmsData.hero.imageUrl === preset.url
+                                            ? 'border-gold-400 bg-gold-500/5'
+                                            : 'border-gold-500/10 bg-luxury-black'
+                                        }`}
+                                      >
+                                        <img src={preset.url} alt="" className="w-8 h-8 object-cover rounded" />
+                                        <span className="text-[10px] font-mono text-gray-300 truncate">{preset.name}</span>
+                                      </button>
+                                    ))}
+                                  </div>
+                                </div>
+
+                                {/* Custom Cover Image and Opacity */}
+                                <div className="space-y-4">
+                                  <div className="space-y-1">
+                                    <label className="text-[10px] font-mono tracking-wider text-gold-400 uppercase">Custom Cover Image URL</label>
+                                    <input
+                                      type="text"
+                                      value={cmsData.hero.imageUrl}
+                                      onChange={(e) => {
+                                        onUpdateCMS({
+                                          ...cmsData,
+                                          hero: { ...cmsData.hero, imageUrl: e.target.value }
+                                        });
+                                      }}
+                                      className="w-full bg-luxury-black border border-gold-500/15 px-3 py-2 text-[10px] font-mono text-white focus:outline-none"
+                                    />
+                                  </div>
+
+                                  <div className="space-y-1">
+                                    <label className="text-[10px] font-mono tracking-wider text-gold-400 uppercase block">
+                                      Cover Backdrop Overlay Opacity ({(cmsData.hero.overlayOpacity).toFixed(0)}%)
+                                    </label>
+                                    <input
+                                      type="range"
+                                      min="10"
+                                      max="95"
+                                      step="5"
+                                      value={cmsData.hero.overlayOpacity}
+                                      onChange={(e) => {
+                                        onUpdateCMS({
+                                          ...cmsData,
+                                          hero: { ...cmsData.hero, overlayOpacity: Number(e.target.value) }
+                                        });
+                                      }}
+                                      className="w-full accent-gold-400 bg-luxury-black h-1.5 rounded-lg appearance-none cursor-pointer"
+                                    />
+                                  </div>
+                                </div>
+                              </div>
+
+                              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 border-t border-gold-500/10 pt-4">
+                                <div className="space-y-1">
+                                  <label className="text-[10px] font-mono tracking-wider text-gold-400 uppercase">Primary Button CTA text</label>
+                                  <input
+                                    type="text"
+                                    value={cmsData.hero.cta1Text}
+                                    onChange={(e) => {
+                                      onUpdateCMS({
+                                        ...cmsData,
+                                        hero: { ...cmsData.hero, cta1Text: e.target.value }
+                                      });
+                                    }}
+                                    className="w-full bg-luxury-black border border-gold-500/15 px-3 py-2 text-xs text-white focus:outline-none"
+                                  />
+                                </div>
+
+                                <div className="space-y-1">
+                                  <label className="text-[10px] font-mono tracking-wider text-gold-400 uppercase">Secondary Button CTA text</label>
+                                  <input
+                                    type="text"
+                                    value={cmsData.hero.cta2Text}
+                                    onChange={(e) => {
+                                      onUpdateCMS({
+                                        ...cmsData,
+                                        hero: { ...cmsData.hero, cta2Text: e.target.value }
+                                      });
+                                    }}
+                                    className="w-full bg-luxury-black border border-gold-500/15 px-3 py-2 text-xs text-white focus:outline-none"
+                                  />
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                        )}
+
+                        {/* SECTION 4: ABOUT US */}
+                        {cmsSection === 'about' && (
+                          <div className="space-y-6">
+                            <h4 className="text-xs font-mono text-gold-300 uppercase tracking-widest border-b border-gold-500/10 pb-2 flex items-center gap-2">
+                              <Type size={14} /> ABOUT STUDIO DESCRIPTIONS & COUNTERS
+                            </h4>
+
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                              <div className="space-y-1">
+                                <label className="text-[10px] font-mono tracking-wider text-gold-400 uppercase">Section Heading Title</label>
+                                <input
+                                  type="text"
+                                  value={cmsData.about.heading}
+                                  onChange={(e) => {
+                                    onUpdateCMS({
+                                      ...cmsData,
+                                      about: { ...cmsData.about, heading: e.target.value }
+                                    });
+                                  }}
+                                  className="w-full bg-luxury-black border border-gold-500/15 px-3 py-2 text-xs text-white focus:outline-none"
+                                />
+                              </div>
+
+                              <div className="space-y-1">
+                                <label className="text-[10px] font-mono tracking-wider text-gold-400 uppercase">Secondary Title Header</label>
+                                <input
+                                  type="text"
+                                  value={cmsData.about.title}
+                                  onChange={(e) => {
+                                    onUpdateCMS({
+                                      ...cmsData,
+                                      about: { ...cmsData.about, title: e.target.value }
+                                    });
+                                  }}
+                                  className="w-full bg-luxury-black border border-gold-500/15 px-3 py-2 text-xs text-white focus:outline-none"
+                                />
+                              </div>
+                            </div>
+
+                            <div className="space-y-4 border-t border-gold-500/10 pt-4">
+                              <div className="space-y-1">
+                                <label className="text-[10px] font-mono tracking-wider text-gold-400 uppercase">Primary descriptive paragraph</label>
+                                <textarea
+                                  rows={2}
+                                  value={cmsData.about.description1}
+                                  onChange={(e) => {
+                                    onUpdateCMS({
+                                      ...cmsData,
+                                      about: { ...cmsData.about, description1: e.target.value }
+                                    });
+                                  }}
+                                  className="w-full bg-luxury-black border border-gold-500/15 p-3 text-xs text-white focus:outline-none"
+                                />
+                              </div>
+
+                              <div className="space-y-1">
+                                <label className="text-[10px] font-mono tracking-wider text-gold-400 uppercase">Secondary narrative summary</label>
+                                <textarea
+                                  rows={2}
+                                  value={cmsData.about.description2}
+                                  onChange={(e) => {
+                                    onUpdateCMS({
+                                      ...cmsData,
+                                      about: { ...cmsData.about, description2: e.target.value }
+                                    });
+                                  }}
+                                  className="w-full bg-luxury-black border border-gold-500/15 p-3 text-xs text-white focus:outline-none"
+                                />
+                              </div>
+                            </div>
+
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 border-t border-gold-500/10 pt-4">
+                              <div className="space-y-1">
+                                <label className="text-[10px] font-mono tracking-wider text-gold-400 uppercase">Director Signature name</label>
+                                <input
+                                  type="text"
+                                  value={cmsData.about.signatureName}
+                                  onChange={(e) => {
+                                    onUpdateCMS({
+                                      ...cmsData,
+                                      about: { ...cmsData.about, signatureName: e.target.value }
+                                    });
+                                  }}
+                                  className="w-full bg-luxury-black border border-gold-500/15 px-3 py-2 text-xs text-white focus:outline-none"
+                                />
+                              </div>
+
+                              <div className="space-y-1">
+                                <label className="text-[10px] font-mono tracking-wider text-gold-400 uppercase">Director Signature subtitle/role</label>
+                                <input
+                                  type="text"
+                                  value={cmsData.about.signatureRole}
+                                  onChange={(e) => {
+                                    onUpdateCMS({
+                                      ...cmsData,
+                                      about: { ...cmsData.about, signatureRole: e.target.value }
+                                    });
+                                  }}
+                                  className="w-full bg-luxury-black border border-gold-500/15 px-3 py-2 text-xs text-white focus:outline-none"
+                                />
+                              </div>
+                            </div>
+
+                            {/* Stats Counters Grid */}
+                            <div className="border-t border-gold-500/10 pt-4 space-y-3">
+                              <label className="text-[10px] font-mono tracking-wider text-gold-400 uppercase block">STUDIO STATS METRICS</label>
+                              <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                                {cmsData.about.stats.map((stat, idx) => (
+                                  <div key={idx} className="bg-luxury-black border border-gold-500/10 p-3 space-y-2">
+                                    <div className="text-[8px] font-mono text-gold-400/50">COUNTER #{idx + 1}</div>
+                                    <div className="space-y-1">
+                                      <span className="text-[8px] font-mono text-gray-500 block">VALUE</span>
+                                      <input
+                                        type="text"
+                                        value={stat.value}
+                                        onChange={(e) => {
+                                          const updatedStats = [...cmsData.about.stats];
+                                          updatedStats[idx] = { ...stat, value: e.target.value };
+                                          onUpdateCMS({ ...cmsData, about: { ...cmsData.about, stats: updatedStats } });
+                                        }}
+                                        className="w-full bg-luxury-gray border border-gold-500/15 px-2 py-1 text-xs text-white focus:outline-none font-mono"
+                                      />
+                                    </div>
+                                    <div className="space-y-1">
+                                      <span className="text-[8px] font-mono text-gray-500 block">LABEL</span>
+                                      <input
+                                        type="text"
+                                        value={stat.label}
+                                        onChange={(e) => {
+                                          const updatedStats = [...cmsData.about.stats];
+                                          updatedStats[idx] = { ...stat, label: e.target.value };
+                                          onUpdateCMS({ ...cmsData, about: { ...cmsData.about, stats: updatedStats } });
+                                        }}
+                                        className="w-full bg-luxury-gray border border-gold-500/15 px-2 py-1 text-[10px] text-gray-300 focus:outline-none"
+                                      />
+                                    </div>
+                                  </div>
+                                ))}
+                              </div>
+                            </div>
+                          </div>
+                        )}
+
+                        {/* SECTION 5: SERVICES */}
+                        {cmsSection === 'services' && (
+                          <div className="space-y-6">
+                            <h4 className="text-xs font-mono text-gold-300 uppercase tracking-widest border-b border-gold-500/10 pb-2 flex justify-between items-center">
+                              <span className="flex items-center gap-2"><Briefcase size={14} /> SERVICE CATALOGS MANAGER</span>
+                              <button
+                                onClick={() => {
+                                  const newItem: ServiceCard = {
+                                    id: 'srv-' + Date.now(),
+                                    title: 'Special Celebration Arrangement',
+                                    description: 'Spectacular entry setups and decor with professional coordinates customized entirely from scratch.',
+                                    basePrice: 45000,
+                                    features: ['Traditional Tamil folk background', 'Premium LED backdrops'],
+                                    iconName: 'Sparkles',
+                                    detailText: 'Spectacular entry setups and decor with professional coordinates customized entirely from scratch.'
+                                  };
+                                  onUpdateCMS({
+                                    ...cmsData,
+                                    services: {
+                                      ...cmsData.services,
+                                      items: [...cmsData.services.items, newItem]
+                                    }
+                                  });
+                                }}
+                                className="px-2.5 py-1 bg-gold-500 hover:bg-gold-400 text-luxury-black font-semibold text-[9px] font-mono tracking-widest uppercase flex items-center gap-1 cursor-pointer transition-colors"
+                              >
+                                <Plus size={10} /> ADD NEW SERVICE
+                              </button>
+                            </h4>
+
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                              <div className="space-y-1">
+                                <label className="text-[10px] font-mono tracking-wider text-gold-400 uppercase">Section title heading</label>
+                                <input
+                                  type="text"
+                                  value={cmsData.services.heading}
+                                  onChange={(e) => {
+                                    onUpdateCMS({
+                                      ...cmsData,
+                                      services: { ...cmsData.services, heading: e.target.value }
+                                    });
+                                  }}
+                                  className="w-full bg-luxury-black border border-gold-500/15 px-3 py-2 text-xs text-white focus:outline-none"
+                                />
+                              </div>
+
+                              <div className="space-y-1">
+                                <label className="text-[10px] font-mono tracking-wider text-gold-400 uppercase">Section subheading tagline</label>
+                                <input
+                                  type="text"
+                                  value={cmsData.services.subheading}
+                                  onChange={(e) => {
+                                    onUpdateCMS({
+                                      ...cmsData,
+                                      services: { ...cmsData.services, subheading: e.target.value }
+                                    });
+                                  }}
+                                  className="w-full bg-luxury-black border border-gold-500/15 px-3 py-2 text-xs text-white focus:outline-none"
+                                />
+                              </div>
+                            </div>
+
+                            {/* Service catalog accordion listings */}
+                            <div className="space-y-4 border-t border-gold-500/10 pt-4">
+                              <label className="text-[10px] font-mono tracking-wider text-gold-400 uppercase block">CATALOG SERVICES ({cmsData.services.items.length})</label>
+                              
+                              <div className="grid grid-cols-1 gap-3.5 max-h-[400px] overflow-y-auto pr-2">
+                                {cmsData.services.items.map((item, idx) => (
+                                  <div key={item.id} className="bg-luxury-black border border-gold-500/10 hover:border-gold-500/30 p-4 space-y-3 relative transition-all">
+                                    <div className="absolute top-0 right-0 p-2 flex items-center gap-2">
+                                      <button
+                                        onClick={() => {
+                                          if (confirm('Are you sure you want to delete this service listing from your catalog?')) {
+                                            const updated = cmsData.services.items.filter(s => s.id !== item.id);
+                                            onUpdateCMS({ ...cmsData, services: { ...cmsData.services, items: updated } });
+                                          }
+                                        }}
+                                        className="p-1 text-gray-500 hover:text-rose-400 transition-colors"
+                                        title="Delete listing"
+                                      >
+                                        <Trash2 size={13} />
+                                      </button>
+                                      <span className="text-[8px] font-mono text-gray-600">#{idx + 1}</span>
+                                    </div>
+
+                                    <div className="grid grid-cols-1 md:grid-cols-12 gap-3">
+                                      <div className="md:col-span-4 space-y-1">
+                                        <span className="text-[8px] font-mono text-gray-500 uppercase">Service Name</span>
+                                        <input
+                                          type="text"
+                                          value={item.title}
+                                          onChange={(e) => {
+                                            const updated = cmsData.services.items.map(s => s.id === item.id ? { ...s, title: e.target.value } : s);
+                                            onUpdateCMS({ ...cmsData, services: { ...cmsData.services, items: updated } });
+                                          }}
+                                          className="w-full bg-luxury-gray border border-gold-500/15 px-2 py-1.5 text-xs text-white focus:outline-none"
+                                        />
+                                      </div>
+
+                                      <div className="md:col-span-3 space-y-1">
+                                        <span className="text-[8px] font-mono text-gray-500 uppercase">Base Price (₹)</span>
+                                        <input
+                                          type="number"
+                                          value={item.basePrice}
+                                          onChange={(e) => {
+                                            const updated = cmsData.services.items.map(s => s.id === item.id ? { ...s, basePrice: Number(e.target.value) } : s);
+                                            onUpdateCMS({ ...cmsData, services: { ...cmsData.services, items: updated } });
+                                          }}
+                                          className="w-full bg-luxury-gray border border-gold-500/15 px-2 py-1.5 text-xs text-white font-mono focus:outline-none"
+                                        />
+                                      </div>
+
+                                      <div className="md:col-span-3 space-y-1">
+                                        <span className="text-[8px] font-mono text-gray-500 uppercase">Icon Ornament</span>
+                                        <select
+                                          value={item.iconName}
+                                          onChange={(e) => {
+                                            const updated = cmsData.services.items.map(s => s.id === item.id ? { ...s, iconName: e.target.value } : s);
+                                            onUpdateCMS({ ...cmsData, services: { ...cmsData.services, items: updated } });
+                                          }}
+                                          className="w-full bg-luxury-gray border border-gold-500/15 px-2 py-1.5 text-[10px] text-gray-300 focus:outline-none"
+                                        >
+                                          {ICON_OPTIONS.map((opt) => (
+                                            <option key={opt} value={opt}>{opt}</option>
+                                          ))}
+                                        </select>
+                                      </div>
+                                    </div>
+
+                                    <div className="space-y-1">
+                                      <span className="text-[8px] font-mono text-gray-500 uppercase">Service Description Copy</span>
+                                      <input
+                                        type="text"
+                                        value={item.description}
+                                        onChange={(e) => {
+                                          const updated = cmsData.services.items.map(s => s.id === item.id ? { ...s, description: e.target.value } : s);
+                                          onUpdateCMS({ ...cmsData, services: { ...cmsData.services, items: updated } });
+                                        }}
+                                        className="w-full bg-luxury-gray border border-gold-500/15 px-2.5 py-1.5 text-xs text-gray-300 focus:outline-none"
+                                      />
+                                    </div>
+                                  </div>
+                                ))}
+                              </div>
+                            </div>
+                          </div>
+                        )}
+
+                        {/* SECTION 6: PORTFOLIO GRID */}
+                        {cmsSection === 'portfolio' && (
+                          <div className="space-y-6">
+                            <h4 className="text-xs font-mono text-gold-300 uppercase tracking-widest border-b border-gold-500/10 pb-2 flex justify-between items-center">
+                              <span className="flex items-center gap-2"><Sliders size={14} /> PORTFOLIO PROJECTS GALLERY</span>
+                              <button
+                                onClick={() => {
+                                  const newItem: GalleryItem = {
+                                    id: 'gal-' + Date.now(),
+                                    category: 'TEMPLE',
+                                    title: 'Grand Samy Oorvalam Festival',
+                                    imageUrl: 'https://images.unsplash.com/photo-1545232979-8bf34eb9757b?q=80&w=1200&auto=format&fit=crop',
+                                    location: 'Thirupparankundram, Madurai',
+                                    date: '2026-05',
+                                    details: 'An amazing traditional folk dance procession staging with massive hand-crafted mascot costumers.'
+                                  };
+                                  onUpdateCMS({
+                                    ...cmsData,
+                                    gallery: { ...cmsData.gallery, items: [...cmsData.gallery.items, newItem] }
+                                  });
+                                }}
+                                className="px-2.5 py-1 bg-gold-500 hover:bg-gold-400 text-luxury-black font-semibold text-[9px] font-mono tracking-widest uppercase flex items-center gap-1 cursor-pointer transition-colors"
+                              >
+                                <Plus size={10} /> ADD GALLERY PROJECT
+                              </button>
+                            </h4>
+
+                            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                              <div className="space-y-1">
+                                <label className="text-[10px] font-mono tracking-wider text-gold-400 uppercase">Gallery Layout Grid Style</label>
+                                <select
+                                  value={cmsData.gallery.layout}
+                                  onChange={(e) => {
+                                    onUpdateCMS({
+                                      ...cmsData,
+                                      gallery: { ...cmsData.gallery, layout: e.target.value as any }
+                                    });
+                                  }}
+                                  className="w-full bg-luxury-black border border-gold-500/15 p-2 text-xs text-white focus:outline-none font-mono"
+                                >
+                                  <option value="grid">Grid (Elegant Rows)</option>
+                                  <option value="slider">Slider Carousel (Breathtaking Focus)</option>
+                                  <option value="masonry">Masonry (Fluid Organic Heights)</option>
+                                </select>
+                              </div>
+
+                              <div className="space-y-1">
+                                <label className="text-[10px] font-mono tracking-wider text-gold-400 uppercase">Section title heading</label>
+                                <input
+                                  type="text"
+                                  value={cmsData.gallery.heading}
+                                  onChange={(e) => {
+                                    onUpdateCMS({
+                                      ...cmsData,
+                                      gallery: { ...cmsData.gallery, heading: e.target.value }
+                                    });
+                                  }}
+                                  className="w-full bg-luxury-black border border-gold-500/15 px-3 py-2 text-xs text-white focus:outline-none"
+                                />
+                              </div>
+
+                              <div className="space-y-1">
+                                <label className="text-[10px] font-mono tracking-wider text-gold-400 uppercase">Section subheading tagline</label>
+                                <input
+                                  type="text"
+                                  value={cmsData.gallery.description}
+                                  onChange={(e) => {
+                                    onUpdateCMS({
+                                      ...cmsData,
+                                      gallery: { ...cmsData.gallery, description: e.target.value }
+                                    });
+                                  }}
+                                  className="w-full bg-luxury-black border border-gold-500/15 px-3 py-2 text-xs text-white focus:outline-none"
+                                />
+                              </div>
+                            </div>
+
+                            {/* Gallery List items */}
+                            <div className="space-y-4 border-t border-gold-500/10 pt-4">
+                              <label className="text-[10px] font-mono tracking-wider text-gold-400 uppercase block">GALLERY PORTFOLIO LOG ({cmsData.gallery.items.length})</label>
+                              <div className="grid grid-cols-1 gap-3.5 max-h-[350px] overflow-y-auto pr-2">
+                                {cmsData.gallery.items.map((item, idx) => (
+                                  <div key={item.id} className="bg-luxury-black border border-gold-500/10 p-4 space-y-3 relative">
+                                    <div className="absolute top-0 right-0 p-2 flex items-center gap-2">
+                                      <button
+                                        onClick={() => {
+                                          if (confirm('Are you sure you want to remove this project from your gallery showcase?')) {
+                                            const updated = cmsData.gallery.items.filter(g => g.id !== item.id);
+                                            onUpdateCMS({ ...cmsData, gallery: { ...cmsData.gallery, items: updated } });
+                                          }
+                                        }}
+                                        className="p-1 text-gray-500 hover:text-rose-400 transition-colors"
+                                      >
+                                        <Trash2 size={13} />
+                                      </button>
+                                      <span className="text-[8px] font-mono text-gray-600">#{idx + 1}</span>
+                                    </div>
+
+                                    <div className="grid grid-cols-1 md:grid-cols-12 gap-3">
+                                      <div className="md:col-span-4 space-y-1">
+                                        <span className="text-[8px] font-mono text-gray-500 uppercase font-light">Project Title</span>
+                                        <input
+                                          type="text"
+                                          value={item.title}
+                                          onChange={(e) => {
+                                            const updated = cmsData.gallery.items.map(g => g.id === item.id ? { ...g, title: e.target.value } : g);
+                                            onUpdateCMS({ ...cmsData, gallery: { ...cmsData.gallery, items: updated } });
+                                          }}
+                                          className="w-full bg-luxury-gray border border-gold-500/15 px-2 py-1.5 text-xs text-white focus:outline-none"
+                                        />
+                                      </div>
+
+                                      <div className="md:col-span-3 space-y-1">
+                                        <span className="text-[8px] font-mono text-gray-500 uppercase font-light">Location</span>
+                                        <input
+                                          type="text"
+                                          value={item.location}
+                                          onChange={(e) => {
+                                            const updated = cmsData.gallery.items.map(g => g.id === item.id ? { ...g, location: e.target.value } : g);
+                                            onUpdateCMS({ ...cmsData, gallery: { ...cmsData.gallery, items: updated } });
+                                          }}
+                                          className="w-full bg-luxury-gray border border-gold-500/15 px-2 py-1.5 text-xs text-white focus:outline-none"
+                                        />
+                                      </div>
+
+                                      <div className="md:col-span-5 space-y-1">
+                                        <span className="text-[8px] font-mono text-gray-500 uppercase font-light">Project Image URL</span>
+                                        <input
+                                          type="text"
+                                          value={item.imageUrl}
+                                          onChange={(e) => {
+                                            const updated = cmsData.gallery.items.map(g => g.id === item.id ? { ...g, imageUrl: e.target.value } : g);
+                                            onUpdateCMS({ ...cmsData, gallery: { ...cmsData.gallery, items: updated } });
+                                          }}
+                                          className="w-full bg-luxury-gray border border-gold-500/15 px-2 py-1.5 text-[10px] font-mono text-white focus:outline-none"
+                                        />
+                                      </div>
+                                    </div>
+                                  </div>
+                                ))}
+                              </div>
+                            </div>
+                          </div>
+                        )}
+
+                        {/* SECTION 7: TESTIMONIALS */}
+                        {cmsSection === 'testimonials' && (
+                          <div className="space-y-6">
+                            <h4 className="text-xs font-mono text-gold-300 uppercase tracking-widest border-b border-gold-500/10 pb-2 flex justify-between items-center">
+                              <span className="flex items-center gap-2"><MessageSquare size={14} /> CLIENT TESTIMONIALS & RATING SYSTEM</span>
+                              <button
+                                onClick={() => {
+                                  const newItem = {
+                                    id: 'test-' + Date.now(),
+                                    name: 'Suresh & Malini',
+                                    role: 'Corporate Hosts',
+                                    event: 'Acoustic Violin Festival',
+                                    comment: 'Outstanding! The stage details, floral arrangements, and traditional Theyyam dancers completely transformed our events.',
+                                    rating: 5
+                                  };
+                                  onUpdateCMS({
+                                    ...cmsData,
+                                    testimonials: { ...cmsData.testimonials, items: [...cmsData.testimonials.items, newItem] }
+                                  });
+                                }}
+                                className="px-2.5 py-1 bg-gold-500 hover:bg-gold-400 text-luxury-black font-semibold text-[9px] font-mono tracking-widest uppercase flex items-center gap-1 cursor-pointer transition-colors"
+                              >
+                                <Plus size={10} /> ADD REVIEW
+                              </button>
+                            </h4>
+
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                              <div className="space-y-1">
+                                <label className="text-[10px] font-mono tracking-wider text-gold-400 uppercase">Section Heading</label>
+                                <input
+                                  type="text"
+                                  value={cmsData.testimonials.heading}
+                                  onChange={(e) => {
+                                    onUpdateCMS({
+                                      ...cmsData,
+                                      testimonials: { ...cmsData.testimonials, heading: e.target.value }
+                                    });
+                                  }}
+                                  className="w-full bg-luxury-black border border-gold-500/15 px-3 py-2 text-xs text-white focus:outline-none"
+                                />
+                              </div>
+
+                              <div className="space-y-1">
+                                <label className="text-[10px] font-mono tracking-wider text-gold-400 uppercase">Section Subtitle</label>
+                                <input
+                                  type="text"
+                                  value={cmsData.testimonials.subheading}
+                                  onChange={(e) => {
+                                    onUpdateCMS({
+                                      ...cmsData,
+                                      testimonials: { ...cmsData.testimonials, subheading: e.target.value }
+                                    });
+                                  }}
+                                  className="w-full bg-luxury-black border border-gold-500/15 px-3 py-2 text-xs text-white focus:outline-none"
+                                />
+                              </div>
+                            </div>
+
+                            {/* Reviews Accordion management */}
+                            <div className="space-y-4 border-t border-gold-500/10 pt-4">
+                              <label className="text-[10px] font-mono tracking-wider text-gold-400 uppercase block">REVIEWS & RATINGS LOG ({cmsData.testimonials.items.length})</label>
+                              <div className="grid grid-cols-1 gap-3.5 max-h-[350px] overflow-y-auto pr-2">
+                                {cmsData.testimonials.items.map((item, idx) => (
+                                  <div key={item.id} className="bg-luxury-black border border-gold-500/10 p-4 space-y-3 relative">
+                                    <div className="absolute top-0 right-0 p-2 flex items-center gap-2">
+                                      <button
+                                        onClick={() => {
+                                          if (confirm('Are you sure you want to remove this client review?')) {
+                                            const updated = cmsData.testimonials.items.filter(t => t.id !== item.id);
+                                            onUpdateCMS({ ...cmsData, testimonials: { ...cmsData.testimonials, items: updated } });
+                                          }
+                                        }}
+                                        className="p-1 text-gray-500 hover:text-rose-400 transition-colors"
+                                      >
+                                        <Trash2 size={13} />
+                                      </button>
+                                      <span className="text-[8px] font-mono text-gray-600">#{idx + 1}</span>
+                                    </div>
+
+                                    <div className="grid grid-cols-1 md:grid-cols-12 gap-3">
+                                      <div className="md:col-span-4 space-y-1">
+                                        <span className="text-[8px] font-mono text-gray-500 uppercase">Client Name</span>
+                                        <input
+                                          type="text"
+                                          value={item.name}
+                                          onChange={(e) => {
+                                            const updated = cmsData.testimonials.items.map(t => t.id === item.id ? { ...t, name: e.target.value } : t);
+                                            onUpdateCMS({ ...cmsData, testimonials: { ...cmsData.testimonials, items: updated } });
+                                          }}
+                                          className="w-full bg-luxury-gray border border-gold-500/15 px-2 py-1.5 text-xs text-white focus:outline-none"
+                                        />
+                                      </div>
+
+                                      <div className="md:col-span-4 space-y-1">
+                                        <span className="text-[8px] font-mono text-gray-500 uppercase">Client Role</span>
+                                        <input
+                                          type="text"
+                                          value={item.role}
+                                          onChange={(e) => {
+                                            const updated = cmsData.testimonials.items.map(t => t.id === item.id ? { ...t, role: e.target.value } : t);
+                                            onUpdateCMS({ ...cmsData, testimonials: { ...cmsData.testimonials, items: updated } });
+                                          }}
+                                          className="w-full bg-luxury-gray border border-gold-500/15 px-2 py-1.5 text-xs text-white focus:outline-none"
+                                        />
+                                      </div>
+
+                                      <div className="md:col-span-4 space-y-1">
+                                        <span className="text-[8px] font-mono text-gray-500 uppercase">Reviewer Rating (Stars)</span>
+                                        <select
+                                          value={item.rating}
+                                          onChange={(e) => {
+                                            const updated = cmsData.testimonials.items.map(t => t.id === item.id ? { ...t, rating: Number(e.target.value) } : t);
+                                            onUpdateCMS({ ...cmsData, testimonials: { ...cmsData.testimonials, items: updated } });
+                                          }}
+                                          className="w-full bg-luxury-gray border border-gold-500/15 px-2 py-1.5 text-xs text-white focus:outline-none"
+                                        >
+                                          <option value="5">5 Stars (Excellent)</option>
+                                          <option value="4">4 Stars (Good)</option>
+                                        </select>
+                                      </div>
+                                    </div>
+
+                                    <div className="space-y-1">
+                                      <span className="text-[8px] font-mono text-gray-500 uppercase">Comment text</span>
+                                      <textarea
+                                        rows={2}
+                                        value={item.comment}
+                                        onChange={(e) => {
+                                          const updated = cmsData.testimonials.items.map(t => t.id === item.id ? { ...t, comment: e.target.value } : t);
+                                          onUpdateCMS({ ...cmsData, testimonials: { ...cmsData.testimonials, items: updated } });
+                                        }}
+                                        className="w-full bg-luxury-gray border border-gold-500/15 p-2 text-xs text-white focus:outline-none font-sans"
+                                      />
+                                    </div>
+                                  </div>
+                                ))}
+                              </div>
+                            </div>
+                          </div>
+                        )}
+
+                        {/* SECTION 8: CONTACT COORDS & FOOTER */}
+                        {cmsSection === 'contact' && (
+                          <div className="space-y-6">
+                            <h4 className="text-xs font-mono text-gold-300 uppercase tracking-widest border-b border-gold-500/10 pb-2 flex items-center gap-2">
+                              <Settings size={14} /> CONTACT COORDINATES & FOOTER COORDINATES
+                            </h4>
+
+                            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                              <div className="space-y-1">
+                                <label className="text-[10px] font-mono tracking-wider text-gold-400 uppercase">Telephone hotline</label>
+                                <input
+                                  type="text"
+                                  value={cmsData.contact.phone}
+                                  onChange={(e) => {
+                                    onUpdateCMS({
+                                      ...cmsData,
+                                      contact: { ...cmsData.contact, phone: e.target.value }
+                                    });
+                                  }}
+                                  className="w-full bg-luxury-black border border-gold-500/15 px-3 py-2 text-xs text-white focus:outline-none font-mono"
+                                />
+                              </div>
+
+                              <div className="space-y-1">
+                                <label className="text-[10px] font-mono tracking-wider text-gold-400 uppercase">E-mail coordinates</label>
+                                <input
+                                  type="text"
+                                  value={cmsData.contact.email}
+                                  onChange={(e) => {
+                                    onUpdateCMS({
+                                      ...cmsData,
+                                      contact: { ...cmsData.contact, email: e.target.value }
+                                    });
+                                  }}
+                                  className="w-full bg-luxury-black border border-gold-500/15 px-3 py-2 text-xs text-white focus:outline-none font-mono"
+                                />
+                              </div>
+
+                              <div className="space-y-1">
+                                <label className="text-[10px] font-mono tracking-wider text-gold-400 uppercase">Studio address</label>
+                                <input
+                                  type="text"
+                                  value={cmsData.contact.address}
+                                  onChange={(e) => {
+                                    onUpdateCMS({
+                                      ...cmsData,
+                                      contact: { ...cmsData.contact, address: e.target.value }
+                                    });
+                                  }}
+                                  className="w-full bg-luxury-black border border-gold-500/15 px-3 py-2 text-xs text-white focus:outline-none"
+                                />
+                              </div>
+                            </div>
+
+                            <div className="border-t border-gold-500/10 pt-4 space-y-4">
+                              <div className="space-y-1">
+                                <label className="text-[10px] font-mono tracking-wider text-gold-400 uppercase">Footer Brand Slogan Tagline</label>
+                                <input
+                                  type="text"
+                                  value={cmsData.footer.tagline}
+                                  onChange={(e) => {
+                                    onUpdateCMS({
+                                      ...cmsData,
+                                      footer: { ...cmsData.footer, tagline: e.target.value }
+                                    });
+                                  }}
+                                  className="w-full bg-luxury-black border border-gold-500/15 px-3 py-2 text-xs text-white focus:outline-none"
+                                />
+                              </div>
+                            </div>
+                          </div>
+                        )}
+
+                      </div>
                     </motion.div>
                   )}
 

@@ -1,20 +1,25 @@
 import React, { useState, useRef } from 'react';
 import { ChevronLeft, ChevronRight, X, MapPin, Calendar, ExternalLink } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
-import { PORTFOLIO_ITEMS } from '../data';
-import { PortfolioItem } from '../types';
+import { CMSState, GalleryItem } from '../cmsData';
 
-export default function Portfolio() {
+interface PortfolioProps {
+  cmsData: CMSState;
+}
+
+export default function Portfolio({ cmsData }: PortfolioProps) {
   const [selectedCategory, setSelectedCategory] = useState<string>('All');
-  const [lightboxItem, setLightboxItem] = useState<PortfolioItem | null>(null);
+  const [lightboxItem, setLightboxItem] = useState<GalleryItem | null>(null);
   const scrollContainerRef = useRef<HTMLDivElement>(null);
+
+  const { heading, description, items, layout } = cmsData.gallery;
 
   const categories = ['All', 'Weddings', 'Birthdays', 'Corporate Events', 'Catering'];
 
   // Filter items
   const filteredItems = selectedCategory === 'All'
-    ? PORTFOLIO_ITEMS
-    : PORTFOLIO_ITEMS.filter(item => item.category === selectedCategory);
+    ? items
+    : items.filter(item => item.category === selectedCategory);
 
   // Scroll actions for the horizontal slider (exact match to visual arrows)
   const handleScroll = (direction: 'left' | 'right') => {
@@ -25,6 +30,57 @@ export default function Portfolio() {
         behavior: 'smooth'
       });
     }
+  };
+
+  const renderPortfolioItem = (item: GalleryItem, index: number) => {
+    return (
+      <motion.div
+        initial={{ opacity: 0, scale: 0.95 }}
+        whileInView={{ opacity: 1, scale: 1 }}
+        viewport={{ once: true }}
+        transition={{ duration: 0.5, delay: index * 0.1 }}
+        key={item.id}
+        onClick={() => setLightboxItem(item)}
+        className="cursor-pointer group/item relative overflow-hidden border border-gold-500/10 hover:border-gold-400/40 transition-all duration-500 bg-luxury-gray"
+      >
+        {/* Thin gold inner frame border */}
+        <div className="absolute inset-0 border border-gold-400/10 m-3 group-hover/item:border-gold-400/40 z-20 transition-all duration-500 pointer-events-none" />
+
+        {/* Aspect ratio box */}
+        <div className="relative h-[250px] overflow-hidden bg-luxury-gray">
+          <img
+            src={item.imageUrl}
+            alt={item.title}
+            className="w-full h-full object-cover group-hover/item:scale-110 transition-transform duration-700 select-none"
+            referrerPolicy="no-referrer"
+          />
+          
+          {/* Subtle golden metallic bottom bar */}
+          <div className="absolute inset-0 bg-gradient-to-t from-luxury-black via-luxury-black/30 to-transparent opacity-80 group-hover/item:opacity-90 transition-opacity duration-500 z-10" />
+        </div>
+
+        {/* Content Overlay */}
+        <div className="p-5 bg-luxury-gray border-t border-gold-500/5 relative z-20 text-left">
+          <span className="text-[9px] font-mono tracking-widest text-gold-400 uppercase">
+            {item.category}
+          </span>
+          <h3 className="font-display text-sm font-semibold text-white tracking-wider uppercase mt-1 group-hover/item:text-gold-300 transition-colors">
+            {item.title}
+          </h3>
+          <div className="flex items-center gap-3 mt-3 text-[10px] text-gray-400">
+            <span className="flex items-center gap-1">
+              <MapPin size={10} className="text-gold-400/80" />
+              {item.location.split(',')[0]}
+            </span>
+            <span className="w-1.5 h-1.5 rounded-full bg-gold-400/40" />
+            <span className="flex items-center gap-1">
+              <Calendar size={10} className="text-gold-400/80" />
+              {item.date}
+            </span>
+          </div>
+        </div>
+      </motion.div>
+    );
   };
 
   return (
@@ -38,8 +94,11 @@ export default function Portfolio() {
         <div className="text-center mb-12">
           <p className="text-[10px] font-mono tracking-[0.4em] text-gold-400 uppercase">OUR PORTFOLIO</p>
           <h2 className="font-display font-light text-3xl md:text-4xl text-white tracking-widest mt-2 uppercase leading-tight">
-            EVERY EVENT, A MASTERPIECE
+            {heading}
           </h2>
+          <p className="text-xs text-gray-400 mt-2 max-w-xl mx-auto font-sans font-light">
+            {description}
+          </p>
           <div className="w-12 h-0.5 bg-gold-400 mx-auto mt-4" />
         </div>
 
@@ -60,90 +119,62 @@ export default function Portfolio() {
           ))}
         </div>
 
-        {/* Horizontal Slider Area (Visual mockup match) */}
-        <div className="relative group">
-          {/* Left Arrow Button */}
-          <button
-            onClick={() => handleScroll('left')}
-            className="absolute left-[-20px] md:left-[-40px] top-1/2 -translate-y-1/2 z-30 w-12 h-12 rounded-full border border-gold-400/30 bg-luxury-black/80 flex items-center justify-center text-gold-400 hover:text-white hover:border-gold-300 hover:bg-gold-500/10 transition-all duration-300 shadow-xl focus:outline-none cursor-pointer"
-            aria-label="Previous Slide"
-          >
-            <ChevronLeft size={20} />
-          </button>
+        {/* Layout Render */}
+        {layout === 'slider' ? (
+          <div className="relative group">
+            {/* Left Arrow Button */}
+            <button
+              onClick={() => handleScroll('left')}
+              className="absolute left-[-20px] md:left-[-40px] top-1/2 -translate-y-1/2 z-30 w-12 h-12 rounded-full border border-gold-400/30 bg-luxury-black/80 flex items-center justify-center text-gold-400 hover:text-white hover:border-gold-300 hover:bg-gold-500/10 transition-all duration-300 shadow-xl focus:outline-none cursor-pointer"
+              aria-label="Previous Slide"
+            >
+              <ChevronLeft size={20} />
+            </button>
 
-          {/* Slider Container */}
-          <div
-            ref={scrollContainerRef}
-            className="flex gap-6 overflow-x-auto snap-x snap-mandatory scrollbar-none py-4 px-1"
-            style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
-          >
+            {/* Slider Container */}
+            <div
+              ref={scrollContainerRef}
+              className="flex gap-6 overflow-x-auto snap-x snap-mandatory scrollbar-none py-4 px-1"
+              style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
+            >
+              {filteredItems.map((item, index) => (
+                <div key={item.id} className="flex-shrink-0 w-[290px] sm:w-[350px] md:w-[380px] snap-start">
+                  {renderPortfolioItem(item, index)}
+                </div>
+              ))}
+            </div>
+
+            {/* Right Arrow Button */}
+            <button
+              onClick={() => handleScroll('right')}
+              className="absolute right-[-20px] md:right-[-40px] top-1/2 -translate-y-1/2 z-30 w-12 h-12 rounded-full border border-gold-400/30 bg-luxury-black/80 flex items-center justify-center text-gold-400 hover:text-white hover:border-gold-300 hover:bg-gold-500/10 transition-all duration-300 shadow-xl focus:outline-none cursor-pointer"
+              aria-label="Next Slide"
+            >
+              <ChevronRight size={20} />
+            </button>
+          </div>
+        ) : layout === 'masonry' ? (
+          <div className="columns-1 sm:columns-2 md:columns-3 gap-6 space-y-6">
             {filteredItems.map((item, index) => (
-              <motion.div
-                initial={{ opacity: 0, scale: 0.95 }}
-                whileInView={{ opacity: 1, scale: 1 }}
-                viewport={{ once: true }}
-                transition={{ duration: 0.5, delay: index * 0.1 }}
-                key={item.id}
-                onClick={() => setLightboxItem(item)}
-                className="flex-shrink-0 w-[290px] sm:w-[350px] md:w-[380px] snap-start cursor-pointer group/item relative overflow-hidden border border-gold-500/10 hover:border-gold-400/40 transition-all duration-500"
-              >
-                {/* Thin gold inner frame border */}
-                <div className="absolute inset-0 border border-gold-400/10 m-3 group-hover/item:border-gold-400/40 z-20 transition-all duration-500 pointer-events-none" />
-
-                {/* Aspect ratio box */}
-                <div className="relative h-[250px] overflow-hidden bg-luxury-gray">
-                  <img
-                    src={item.imageUrl}
-                    alt={item.title}
-                    className="w-full h-full object-cover group-hover/item:scale-110 transition-transform duration-700 select-none"
-                    referrerPolicy="no-referrer"
-                  />
-                  
-                  {/* Subtle golden metallic bottom bar */}
-                  <div className="absolute inset-0 bg-gradient-to-t from-luxury-black via-luxury-black/30 to-transparent opacity-80 group-hover/item:opacity-90 transition-opacity duration-500 z-10" />
-                </div>
-
-                {/* Content Overlay */}
-                <div className="p-5 bg-luxury-gray border-t border-gold-500/5 relative z-20">
-                  <span className="text-[9px] font-mono tracking-widest text-gold-400 uppercase">
-                    {item.category}
-                  </span>
-                  <h3 className="font-display text-sm font-semibold text-white tracking-wider uppercase mt-1 group-hover/item:text-gold-300 transition-colors">
-                    {item.title}
-                  </h3>
-                  <div className="flex items-center gap-3 mt-3 text-[10px] text-gray-400">
-                    <span className="flex items-center gap-1">
-                      <MapPin size={10} className="text-gold-400/80" />
-                      {item.location.split(',')[0]}
-                    </span>
-                    <span className="w-1.5 h-1.5 rounded-full bg-gold-400/40" />
-                    <span className="flex items-center gap-1">
-                      <Calendar size={10} className="text-gold-400/80" />
-                      {item.date}
-                    </span>
-                  </div>
-                </div>
-              </motion.div>
+              <div key={item.id} className="break-inside-avoid">
+                {renderPortfolioItem(item, index)}
+              </div>
             ))}
           </div>
-
-          {/* Right Arrow Button */}
-          <button
-            onClick={() => handleScroll('right')}
-            className="absolute right-[-20px] md:right-[-40px] top-1/2 -translate-y-1/2 z-30 w-12 h-12 rounded-full border border-gold-400/30 bg-luxury-black/80 flex items-center justify-center text-gold-400 hover:text-white hover:border-gold-300 hover:bg-gold-500/10 transition-all duration-300 shadow-xl focus:outline-none cursor-pointer"
-            aria-label="Next Slide"
-          >
-            <ChevronRight size={20} />
-          </button>
-        </div>
+        ) : (
+          /* Grid Layout */
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+            {filteredItems.map((item, index) => renderPortfolioItem(item, index))}
+          </div>
+        )}
 
         {/* View Full Portfolio Button */}
         <div className="text-center mt-12">
           <button
-            onClick={() => setLightboxItem(PORTFOLIO_ITEMS[0])}
+            onClick={() => items.length > 0 && setLightboxItem(items[0])}
             className="group border border-gold-400/20 hover:border-gold-400 hover:bg-gold-500/5 text-gold-300 text-xs font-semibold tracking-[0.2em] px-8 py-3.5 inline-flex items-center gap-3 transition-all duration-300 uppercase focus:outline-none cursor-pointer"
           >
-            VIEW FULL PORTFOLIO
+            VIEW FULL GALLERY
             <ExternalLink size={12} className="text-gold-300" />
           </button>
         </div>
@@ -223,7 +254,6 @@ export default function Portfolio() {
                   <button
                     onClick={() => {
                       setLightboxItem(null);
-                      // Dispatch smooth scroll or handle via layout
                       const el = document.getElementById('packages');
                       if (el) el.scrollIntoView({ behavior: 'smooth' });
                     }}

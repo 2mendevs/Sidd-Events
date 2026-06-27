@@ -4,15 +4,16 @@ import {
   Flame, Smile, Music, Heart, Tv, Disc, Shield, Crown, Zap, Gift, Users, PlusCircle 
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
-import { SERVICE_ITEMS } from '../data';
-import { ServiceItem } from '../types';
+import { CMSState, ServiceCard } from '../cmsData';
 
 interface ServicesProps {
   onSelectServiceForCalculator: (serviceId: string) => void;
+  cmsData: CMSState;
 }
 
-export default function Services({ onSelectServiceForCalculator }: ServicesProps) {
-  const [selectedService, setSelectedService] = useState<ServiceItem | null>(null);
+export default function Services({ onSelectServiceForCalculator, cmsData }: ServicesProps) {
+  const [selectedService, setSelectedService] = useState<ServiceCard | null>(null);
+  const { heading, subheading, items } = cmsData.services;
 
   // Map icon name to React element
   const renderIcon = (iconName: string) => {
@@ -71,16 +72,16 @@ export default function Services({ onSelectServiceForCalculator }: ServicesProps
       <div className="max-w-7xl mx-auto px-6 md:px-12">
         {/* Section Heading (Matching visual text style) */}
         <div className="text-center mb-16">
-          <p className="text-[10px] font-mono tracking-[0.4em] text-gold-400 uppercase">OUR SERVICES</p>
+          <p className="text-[10px] font-mono tracking-[0.4em] text-gold-400 uppercase">{heading}</p>
           <h2 className="font-display font-light text-3xl md:text-4xl text-white tracking-widest mt-2 uppercase">
-            WHAT WE DO BEST
+            {subheading}
           </h2>
           <div className="w-12 h-0.5 bg-gold-400 mx-auto mt-4" />
         </div>
 
         {/* 5-Column Grid with modern responsive cards layout */}
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6">
-          {SERVICE_ITEMS.map((service, index) => (
+          {items.map((service, index) => (
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               whileInView={{ opacity: 1, y: 0 }}

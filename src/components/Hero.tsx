@@ -1,25 +1,32 @@
 import React from 'react';
 import { Play, ArrowRight, Instagram, Facebook, Youtube } from 'lucide-react';
 import { motion } from 'motion/react';
+import { CMSState } from '../cmsData';
 
 interface HeroProps {
   onExploreServices: () => void;
   onViewOurWork: () => void;
+  cmsData: CMSState;
 }
 
-export default function Hero({ onExploreServices, onViewOurWork }: HeroProps) {
+export default function Hero({ onExploreServices, onViewOurWork, cmsData }: HeroProps) {
+  const { headline, subheadline, taglineLine1, taglineLine2, imageUrl, cta1Text, cta2Text, overlayOpacity, badgeText } = cmsData.hero;
+
   return (
     <section id="home" className="relative h-screen min-h-[700px] flex items-center justify-center overflow-hidden">
       {/* Background Image with Premium Luxury Overlays */}
       <div className="absolute inset-0 z-0">
         <img
-          src="https://images.unsplash.com/photo-1519167758481-83f550bb49b3?auto=format&fit=crop&q=80&w=1800"
+          src={imageUrl}
           alt="Luxury Event Grand Ballroom"
           className="w-full h-full object-cover scale-105 select-none"
           referrerPolicy="no-referrer"
         />
         {/* Dark gold radial wash for maximum focus and luxury drama */}
-        <div className="absolute inset-0 bg-radial-luxury opacity-85 z-10" />
+        <div 
+          className="absolute inset-0 bg-radial-luxury z-10" 
+          style={{ opacity: overlayOpacity / 100 }}
+        />
         <div className="absolute inset-0 bg-gradient-to-r from-luxury-black via-luxury-black/60 to-transparent z-15" />
         <div className="absolute inset-0 bg-gradient-to-t from-luxury-black via-transparent to-luxury-black/40 z-15" />
       </div>
@@ -39,10 +46,10 @@ export default function Hero({ onExploreServices, onViewOurWork }: HeroProps) {
             <span className="w-12 h-[1px] bg-gold-400" />
             <div className="flex flex-col">
               <span className="text-[10px] md:text-xs font-sans font-medium tracking-[0.35em] text-gold-300 uppercase leading-none">
-                CRAFTING MOMENTS.
+                {taglineLine1}
               </span>
               <span className="text-[9px] md:text-[10px] font-sans font-light tracking-[0.35em] text-gold-400/80 uppercase mt-1">
-                CREATING MEMORIES.
+                {taglineLine2}
               </span>
             </div>
           </motion.div>
@@ -54,12 +61,16 @@ export default function Hero({ onExploreServices, onViewOurWork }: HeroProps) {
             transition={{ duration: 1, ease: 'easeOut', delay: 0.2 }}
             className="font-display font-light text-white text-4xl sm:text-5xl md:text-6xl lg:text-7xl leading-[1.1] tracking-[0.03em] uppercase drop-shadow-lg"
           >
-            EXTRAORDINARY <br />
-            <span className="font-serif italic font-normal text-gold-300 tracking-[0.01em] text-gold-metallic">
-              EVENTS.
-            </span>
-            <br />
-            TIMELESS MEMORIES.
+            {headline.includes(".") ? (
+              <>
+                {headline.split(".")[0]}.
+                <br />
+                <span className="font-serif italic font-normal text-gold-300 tracking-[0.01em] text-gold-metallic">
+                  {headline.split(".")[1]}
+                </span>
+                {headline.split(".").slice(2).join(".")}
+              </>
+            ) : headline}
           </motion.h1>
 
           {/* Core Description */}
@@ -69,7 +80,7 @@ export default function Hero({ onExploreServices, onViewOurWork }: HeroProps) {
             transition={{ duration: 1, ease: 'easeOut', delay: 0.4 }}
             className="mt-6 text-sm sm:text-base text-gray-300 max-w-xl leading-relaxed font-sans font-light"
           >
-            From intimate gatherings to grand celebrations, we design experiences that leave lasting impressions and turn your vision into reality.
+            {subheadline}
           </motion.p>
 
           {/* Interactive Call-To-Action Buttons */}
@@ -84,7 +95,7 @@ export default function Hero({ onExploreServices, onViewOurWork }: HeroProps) {
               onClick={onExploreServices}
               className="gold-shimmer-btn text-luxury-black text-xs font-semibold tracking-[0.2em] uppercase px-8 py-4 flex items-center gap-3 transition-all duration-300 focus:outline-none hover:shadow-[0_0_25px_rgba(197,142,55,0.4)] cursor-pointer"
             >
-              EXPLORE SERVICES
+              {cta1Text}
               <ArrowRight size={14} strokeWidth={2.5} />
             </button>
 
@@ -93,7 +104,7 @@ export default function Hero({ onExploreServices, onViewOurWork }: HeroProps) {
               onClick={onViewOurWork}
               className="group border border-white/20 hover:border-gold-300 hover:text-gold-300 text-white text-xs font-semibold tracking-[0.2em] uppercase px-8 py-4 flex items-center gap-3 transition-all duration-300 focus:outline-none cursor-pointer bg-luxury-black/30 backdrop-blur-sm"
             >
-              VIEW OUR WORK
+              {cta2Text}
               <Play size={14} className="fill-current text-white group-hover:text-gold-300 transition-colors" />
             </button>
           </motion.div>

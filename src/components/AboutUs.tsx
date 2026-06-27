@@ -1,9 +1,15 @@
 import React from 'react';
 import { CheckCircle2, Trophy, Clock, Users } from 'lucide-react';
 import { motion } from 'motion/react';
-import { STATS_ITEMS } from '../data';
+import { CMSState } from '../cmsData';
 
-export default function AboutUs() {
+interface AboutUsProps {
+  cmsData: CMSState;
+}
+
+export default function AboutUs({ cmsData }: AboutUsProps) {
+  const { heading, title, description1, description2, signatureName, signatureRole, images, stats } = cmsData.about;
+
   return (
     <section id="about" className="relative bg-luxury-black py-24 border-t border-gold-500/10 overflow-hidden">
       {/* Decorative Golden Line Wash */}
@@ -14,31 +20,35 @@ export default function AboutUs() {
           
           {/* Left Column - Core Pitch */}
           <div className="lg:col-span-5 flex flex-col justify-center text-left">
-            <span className="text-[10px] font-mono tracking-[0.4em] text-gold-400 uppercase">ABOUT US</span>
+            <span className="text-[10px] font-mono tracking-[0.4em] text-gold-400 uppercase">{heading}</span>
             
             <h2 className="font-display font-light text-4xl md:text-5xl text-white tracking-widest mt-2 uppercase leading-[1.15]">
-              DETAILS MAKE <br />
-              <span className="text-gold-metallic font-semibold">PERFECTION</span>
+              {title.includes(" ") ? (
+                <>
+                  {title.substring(0, title.lastIndexOf(" "))} <br />
+                  <span className="text-gold-metallic font-semibold">{title.substring(title.lastIndexOf(" ") + 1)}</span>
+                </>
+              ) : title}
             </h2>
             
             <div className="w-12 h-[2px] bg-gold-400 my-6" />
 
             <p className="text-sm text-gray-300 leading-relaxed font-sans font-light">
-              At Siddharth Vibe Events, we believe every detail matters. Our passionate team blends creativity, precision, and dedication to craft celebrations that are seamless, stylish, and unforgettable.
+              {description1}
             </p>
 
             <p className="text-xs text-gray-400 leading-relaxed font-sans font-light mt-4">
-              We specialize in curating high-end bespoke environments in Madurai and across South India. By blending exquisite lighting designs, magnificent floral setups, and top-tier culinary collaborations, we turn every single venue into an immersive visual sanctuary.
+              {description2}
             </p>
 
             {/* Founder Signature (Classy layout) */}
             <div className="mt-8 pt-6 border-t border-gold-500/10 flex flex-col items-start">
               {/* Cursive Custom SVG/Font Signature */}
               <span className="font-signature text-3xl text-gold-300 italic tracking-wider">
-                Siddharth
+                {signatureName}
               </span>
               <span className="text-[9px] font-mono tracking-[0.25em] text-gray-400 uppercase mt-2">
-                FOUNDER & CEO
+                {signatureRole}
               </span>
             </div>
           </div>
@@ -58,7 +68,7 @@ export default function AboutUs() {
                 className="rounded-none overflow-hidden h-[90%] mt-auto border border-gold-500/10 hover:border-gold-400/40 transition-all duration-500 shadow-xl"
               >
                 <img
-                  src="https://images.unsplash.com/photo-1513151233558-d860c5398176?auto=format&fit=crop&q=80&w=400"
+                  src={images[0] || "https://images.unsplash.com/photo-1513151233558-d860c5398176?auto=format&fit=crop&q=80&w=400"}
                   alt="Golden event lights"
                   className="w-full h-full object-cover hover:scale-115 transition-transform duration-700"
                   referrerPolicy="no-referrer"
@@ -76,7 +86,7 @@ export default function AboutUs() {
                 {/* Gold glowing frame inside */}
                 <div className="absolute inset-0 border border-gold-400/20 m-1.5 pointer-events-none" />
                 <img
-                  src="https://images.unsplash.com/photo-1507504038482-762103743ec1?auto=format&fit=crop&q=80&w=400"
+                  src={images[1] || "https://images.unsplash.com/photo-1507504038482-762103743ec1?auto=format&fit=crop&q=80&w=400"}
                   alt="Chandelier detail setup"
                   className="w-full h-full object-cover hover:scale-115 transition-transform duration-700"
                   referrerPolicy="no-referrer"
@@ -92,7 +102,7 @@ export default function AboutUs() {
                 className="rounded-none overflow-hidden h-[90%] mt-auto border border-gold-500/10 hover:border-gold-400/40 transition-all duration-500 shadow-xl"
               >
                 <img
-                  src="https://images.unsplash.com/photo-1511795409834-ef04bbd61622?auto=format&fit=crop&q=80&w=400"
+                  src={images[2] || "https://images.unsplash.com/photo-1511795409834-ef04bbd61622?auto=format&fit=crop&q=80&w=400"}
                   alt="Fine dining details"
                   className="w-full h-full object-cover hover:scale-115 transition-transform duration-700"
                   referrerPolicy="no-referrer"
@@ -108,8 +118,8 @@ export default function AboutUs() {
               transition={{ duration: 0.8, delay: 0.4 }}
               className="absolute bottom-4 left-1/2 -translate-x-1/2 w-[94%] bg-luxury-black/85 backdrop-blur-md border border-gold-400/30 py-6 px-4 grid grid-cols-4 items-center justify-center text-center shadow-[0_15px_35px_rgba(0,0,0,0.6)]"
             >
-              {STATS_ITEMS.map((stat, i) => (
-                <div key={i} className="flex flex-col items-center justify-center border-r last:border-r-0 border-gold-500/10">
+              {stats.map((stat, i) => (
+                <div key={stat.id || i} className="flex flex-col items-center justify-center border-r last:border-r-0 border-gold-500/10">
                   <span className="font-mono text-xl sm:text-2xl md:text-3xl font-semibold text-gold-300 tracking-tight text-gold-metallic">
                     {stat.value}
                   </span>

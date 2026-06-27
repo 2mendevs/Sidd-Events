@@ -1,19 +1,20 @@
 import React, { useState, useEffect } from 'react';
 import { Phone, Mail, Calendar, Users, Sliders, DollarSign, ArrowRight, Check, MapPin, Clock, Instagram, Facebook, Linkedin, Compass, ExternalLink } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
-import { SERVICE_ITEMS } from '../data';
 import { ConsultationRequest } from '../types';
+import { CMSState } from '../cmsData';
 
 const MAPS_URL = 'https://maps.app.goo.gl/UoRgDmgte9ft5f7G8';
 
 interface ConsultationProps {
   selectedServiceId: string;
   onBookingSuccess: (request: ConsultationRequest) => void;
+  cmsData: CMSState;
 }
 
-export default function Consultation({ selectedServiceId, onBookingSuccess }: ConsultationProps) {
+export default function Consultation({ selectedServiceId, onBookingSuccess, cmsData }: ConsultationProps) {
   // Form States
-  const [eventType, setEventType] = useState('temple-processions');
+  const [eventType, setEventType] = useState('srv-1');
   const [guestCount, setGuestCount] = useState(250);
   const [fullName, setFullName] = useState('');
   const [email, setEmail] = useState('');
@@ -32,6 +33,13 @@ export default function Consultation({ selectedServiceId, onBookingSuccess }: Co
     }
   }, [selectedServiceId]);
 
+  // Set default eventType when cmsData loads
+  useEffect(() => {
+    if (cmsData?.services?.items?.length && !selectedServiceId) {
+      setEventType(cmsData.services.items[0].id);
+    }
+  }, [cmsData, selectedServiceId]);
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!fullName || !email || !phone || !eventDate) {
@@ -42,8 +50,8 @@ export default function Consultation({ selectedServiceId, onBookingSuccess }: Co
 
     // Simulate sending data to backend
     setTimeout(() => {
-      const baseService = SERVICE_ITEMS.find(s => s.id === eventType) || SERVICE_ITEMS[0];
-      const basePrice = baseService.basePrice * 80; // Convert to Rupees baseline
+      const baseService = cmsData.services.items.find(s => s.id === eventType) || cmsData.services.items[0];
+      const basePrice = baseService.basePrice;
       const estimatedCatering = 1200 * guestCount; // Premium Buffet baseline
       const estimatedDecor = 200000; // Regal Gold baseline
       const totalEstimate = basePrice + estimatedCatering + estimatedDecor;
@@ -99,7 +107,7 @@ export default function Consultation({ selectedServiceId, onBookingSuccess }: Co
           <div className="relative z-10 grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
             {/* Left text */}
             <div className="lg:col-span-5 text-left">
-              <span className="text-[10px] font-mono tracking-widest text-gold-400 uppercase">LET'S CREATE</span>
+               <span className="text-[10px] font-mono tracking-widest text-gold-400 uppercase">LET'S CREATE</span>
               <h3 className="font-display font-light text-2xl md:text-3xl text-white tracking-widest mt-1 uppercase leading-snug">
                 SOMETHING <span className="text-gold-metallic font-semibold">EXTRAORDINARY</span>
               </h3>
@@ -115,7 +123,7 @@ export default function Consultation({ selectedServiceId, onBookingSuccess }: Co
                   <Phone size={14} />
                 </div>
                 <div>
-                  <p className="text-xs font-mono font-semibold text-white tracking-wider">6381690032</p>
+                  <p className="text-xs font-mono font-semibold text-white tracking-wider">{cmsData.contact.phone}</p>
                   <p className="text-[10px] text-gray-500">Call us anytime</p>
                 </div>
               </div>
@@ -124,7 +132,7 @@ export default function Consultation({ selectedServiceId, onBookingSuccess }: Co
                   <Mail size={14} />
                 </div>
                 <div>
-                  <p className="text-xs font-mono font-semibold text-white tracking-wider">siddharthvibeevents@gmail.com</p>
+                  <p className="text-xs font-mono font-semibold text-white tracking-wider">{cmsData.contact.email}</p>
                   <p className="text-[10px] text-gray-500">Drop us an email</p>
                 </div>
               </div>
@@ -310,7 +318,7 @@ export default function Consultation({ selectedServiceId, onBookingSuccess }: Co
                     onChange={(e) => setEventType(e.target.value)}
                     className="w-full bg-luxury-black border border-gold-500/10 py-3.5 px-4 text-xs text-gray-300 tracking-wider focus:outline-none focus:border-gold-400/50"
                   >
-                    {SERVICE_ITEMS.map((srv) => (
+                    {cmsData.services.items.map((srv) => (
                       <option key={srv.id} value={srv.id}>
                         {srv.title}
                       </option>

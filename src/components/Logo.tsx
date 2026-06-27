@@ -4,9 +4,11 @@ interface LogoProps {
   className?: string;
   showText?: boolean;
   size?: 'sm' | 'md' | 'lg';
+  logoText?: string;
+  logoSubtext?: string;
 }
 
-export default function Logo({ className = '', showText = true, size = 'md' }: LogoProps) {
+export default function Logo({ className = '', showText = true, size = 'md', logoText = "SIDDHARTH VIBE", logoSubtext = "EVENTS" }: LogoProps) {
   const getScale = () => {
     switch (size) {
       case 'sm': return 'scale-75 origin-left';
@@ -79,10 +81,10 @@ export default function Logo({ className = '', showText = true, size = 'md' }: L
       {showText && (
         <div className="flex flex-col tracking-[0.18em]">
           <span className="font-display font-semibold text-lg text-white leading-tight drop-shadow-md">
-            SIDDHARTH VIBE
+            {logoText}
           </span>
           <span className="text-[10px] text-gold-400 font-sans font-light tracking-[0.45em] -mt-0.5 uppercase">
-            E V E N T S
+            {logoSubtext}
           </span>
         </div>
       )}

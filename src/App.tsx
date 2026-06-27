@@ -10,6 +10,7 @@ import Footer from './components/Footer';
 import BookingModal from './components/BookingModal';
 import AdminPanel from './components/AdminPanel';
 import { ConsultationRequest } from './types';
+import { loadCMSData, saveCMSData, CMSState } from './cmsData';
 
 const SEED_BOOKINGS: ConsultationRequest[] = [
   {
@@ -87,6 +88,7 @@ export default function App() {
   const [activeBooking, setActiveBooking] = useState<ConsultationRequest | null>(null);
   const [bookings, setBookings] = useState<ConsultationRequest[]>([]);
   const [isAdminOpen, setIsAdminOpen] = useState(false);
+  const [cmsData, setCmsData] = useState<CMSState>(loadCMSData());
 
   // Initialize and load bookings
   useEffect(() => {
@@ -144,6 +146,12 @@ export default function App() {
     setActiveBooking(enriched);
   };
 
+  // Update CMS callback helper
+  const handleUpdateCMS = (newData: CMSState) => {
+    setCmsData(newData);
+    saveCMSData(newData);
+  };
+
   // Smooth scroll navigation
   const handleNavigate = (sectionId: string) => {
     setActiveSection(sectionId);
@@ -195,8 +203,73 @@ export default function App() {
     };
   }, []);
 
+  // Theme variable styles
+  const isDarkMode = cmsData.globalSettings.isDarkMode;
+  const primaryColor = cmsData.globalSettings.primaryColor;
+  const secondaryColor = cmsData.globalSettings.secondaryColor;
+  const headingFont = cmsData.globalSettings.headingFont;
+  const bodyFont = cmsData.globalSettings.bodyFont;
+
+  const fontDisplayFamily = headingFont === 'serif' ? '"Cormorant Garamond", Georgia, serif' : headingFont === 'sans-serif' ? '"Inter", sans-serif' : '"Cinzel", "Cinzel Decorative", serif';
+  const fontSansFamily = bodyFont === 'mono' ? '"JetBrains Mono", monospace' : bodyFont === 'serif' ? '"Cormorant Garamond", serif' : '"Inter", sans-serif';
+
   return (
     <div className="relative min-h-screen bg-luxury-black text-gray-200 select-none antialiased">
+      {/* Real-time Theme Overrides Engine */}
+      <style>{`
+        :root {
+          --color-gold-400: ${primaryColor} !important;
+          --color-gold-500: ${primaryColor} !important;
+          --color-gold-600: ${primaryColor}dd !important;
+          --color-gold-300: ${secondaryColor} !important;
+          --font-display: ${fontDisplayFamily} !important;
+          --font-sans: ${fontSansFamily} !important;
+        }
+        
+        ${!isDarkMode ? `
+          /* High contrast Royal Cream Light mode overrides */
+          body, .min-h-screen, html {
+            background-color: #fcfbfa !important;
+            color: #1a1a1a !important;
+          }
+          .bg-luxury-black, .bg-[#030303] {
+            background-color: #f7f5ef !important;
+          }
+          .bg-luxury-gray, .bg-luxury-gray\\/40, .bg-luxury-gray\\/85, .bg-luxury-gray\\/90 {
+            background-color: #eae6db !important;
+          }
+          .text-white, .text-gray-200, .text-gray-300 {
+            color: #141414 !important;
+          }
+          .text-gray-400, .text-gray-500 {
+            color: #4a4a4a !important;
+          }
+          .border-gold-500\\/10, .border-gold-400\\/30, .border-gold-400\\/20, .border-gold-500\\/15, .border-gold-500\\/25 {
+            border-color: rgba(197, 142, 55, 0.25) !important;
+          }
+          .divide-gold-500\\/10 > * {
+            border-color: rgba(197, 142, 55, 0.25) !important;
+          }
+          .bg-radial-luxury {
+            background: radial-gradient(circle at 50% 50%, rgba(251, 249, 244, 0.75) 0%, rgba(247, 245, 239, 1) 100%) !important;
+          }
+          .gold-shimmer-btn {
+            color: #ffffff !important;
+            background: linear-gradient(135deg, ${primaryColor} 0%, ${secondaryColor} 100%) !important;
+          }
+          .text-gold-400, .text-gold-300 {
+            color: ${primaryColor} !important;
+          }
+          .group-hover\\:via-gold-400 {
+            background-image: linear-gradient(to right, transparent, ${primaryColor}, transparent) !important;
+          }
+          /* Overlay adjustments for Hero background visibility */
+          .bg-radial-luxury {
+            opacity: 0.65 !important;
+          }
+        ` : ''}
+      `}</style>
+
       {/* Decorative Outer Ambient Glows */}
       <div className="absolute top-0 left-0 w-full h-full pointer-events-none overflow-hidden z-0">
         <div className="absolute top-[15%] left-[5%] w-[400px] h-[400px] bg-gold-600/5 rounded-full blur-[120px]" />
@@ -209,6 +282,7 @@ export default function App() {
         onNavigate={handleNavigate}
         onBookConsultation={handleBookConsultation}
         onOpenAdmin={() => setIsAdminOpen(true)}
+        cmsData={cmsData}
       />
 
       {/* Main Layout Sections */}
@@ -216,26 +290,29 @@ export default function App() {
         <Hero
           onExploreServices={() => handleNavigate('services')}
           onViewOurWork={() => handleNavigate('portfolio')}
+          cmsData={cmsData}
         />
         
         <Services
           onSelectServiceForCalculator={handleSelectServiceForCalculator}
+          cmsData={cmsData}
         />
         
-        <AboutUs />
+        <AboutUs cmsData={cmsData} />
         
-        <Portfolio />
+        <Portfolio cmsData={cmsData} />
         
         <Consultation
           selectedServiceId={selectedServiceId}
           onBookingSuccess={handleBookingSubmitted}
+          cmsData={cmsData}
         />
         
-        <Testimonials />
+        <Testimonials cmsData={cmsData} />
       </main>
 
       {/* Grand Footer */}
-      <Footer onNavigate={handleNavigate} />
+      <Footer onNavigate={handleNavigate} cmsData={cmsData} />
 
       {/* Consultation Success Modal Popups */}
       <BookingModal
@@ -252,6 +329,8 @@ export default function App() {
         onAddNotes={handleAddNotes}
         onDeleteBooking={handleDeleteBooking}
         onAddManualBooking={handleAddManualBooking}
+        cmsData={cmsData}
+        onUpdateCMS={handleUpdateCMS}
       />
     </div>
   );

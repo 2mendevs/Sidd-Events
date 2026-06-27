@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Menu, X, Shield } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
-import { NAV_ITEMS } from '../data';
+import { CMSState } from '../cmsData';
 import Logo from './Logo';
 
 interface HeaderProps {
@@ -9,9 +9,10 @@ interface HeaderProps {
   onNavigate: (sectionId: string) => void;
   onBookConsultation: () => void;
   onOpenAdmin: () => void;
+  cmsData: CMSState;
 }
 
-export default function Header({ activeSection, onNavigate, onBookConsultation, onOpenAdmin }: HeaderProps) {
+export default function Header({ activeSection, onNavigate, onBookConsultation, onOpenAdmin, cmsData }: HeaderProps) {
   const [isScrolled, setIsScrolled] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
@@ -28,10 +29,12 @@ export default function Header({ activeSection, onNavigate, onBookConsultation, 
     setMobileMenuOpen(false);
   };
 
+  const isSticky = cmsData.navbar.isSticky;
+
   return (
     <>
       <header
-        className={`fixed top-0 left-0 w-full z-50 transition-all duration-500 ${
+        className={`${isSticky ? 'fixed' : 'absolute'} top-0 left-0 w-full z-50 transition-all duration-500 ${
           isScrolled
             ? 'bg-luxury-black/95 backdrop-blur-md border-b border-gold-500/10 py-3 shadow-lg'
             : 'bg-transparent py-6'
@@ -40,12 +43,16 @@ export default function Header({ activeSection, onNavigate, onBookConsultation, 
         <div className="max-w-7xl mx-auto px-6 md:px-12 flex items-center justify-between">
           {/* Brand Logo */}
           <button onClick={() => handleNavClick('home')} className="focus:outline-none">
-            <Logo size="md" />
+            <Logo 
+              size="md" 
+              logoText={cmsData.navbar.logoText} 
+              logoSubtext={cmsData.navbar.logoSubtext} 
+            />
           </button>
 
           {/* Desktop Navigation Links */}
           <nav className="hidden lg:flex items-center gap-8">
-            {NAV_ITEMS.map((item) => {
+            {cmsData.navbar.links.map((item) => {
               const isActive = activeSection === item.id;
               return (
                 <button
@@ -74,7 +81,7 @@ export default function Header({ activeSection, onNavigate, onBookConsultation, 
               onClick={onBookConsultation}
               className="hidden md:block border border-gold-400/40 hover:border-gold-300 hover:bg-gold-500/10 text-gold-300 text-[10px] font-semibold tracking-[0.2em] uppercase px-5 py-2.5 rounded-none transition-all duration-300 focus:outline-none cursor-pointer"
             >
-              BOOK A CONSULTATION
+              {cmsData.navbar.ctaText}
             </button>
 
             {/* Admin Console Lock */}
@@ -121,7 +128,7 @@ export default function Header({ activeSection, onNavigate, onBookConsultation, 
 
             {/* Mobile Nav Links */}
             <div className="flex flex-col gap-6 text-left my-auto">
-              {NAV_ITEMS.map((item, index) => {
+              {cmsData.navbar.links.map((item, index) => {
                 const isActive = activeSection === item.id;
                 return (
                   <motion.button
@@ -143,8 +150,8 @@ export default function Header({ activeSection, onNavigate, onBookConsultation, 
             {/* Bottom Contact Details in mobile drawer */}
             <div className="mb-12 border-t border-gold-500/10 pt-8">
               <p className="text-[10px] font-mono tracking-widest text-gold-400 uppercase">GET IN TOUCH</p>
-              <p className="text-sm font-sans mt-2 text-gray-300">+91 6381690032</p>
-              <p className="text-xs font-sans text-gray-500">siddharthvibeevents@gmail.com</p>
+              <p className="text-sm font-sans mt-2 text-gray-300">{cmsData.contact.phone}</p>
+              <p className="text-xs font-sans text-gray-500">{cmsData.contact.email}</p>
               <div className="mt-6 flex flex-col gap-3">
                 <button
                   onClick={() => {
@@ -153,7 +160,7 @@ export default function Header({ activeSection, onNavigate, onBookConsultation, 
                   }}
                   className="w-full text-center bg-gradient-to-r from-gold-600 to-gold-400 text-luxury-black font-semibold text-xs tracking-widest py-3 uppercase cursor-pointer"
                 >
-                  BOOK CONSULTATION
+                  {cmsData.navbar.ctaText}
                 </button>
                 <button
                   onClick={() => {

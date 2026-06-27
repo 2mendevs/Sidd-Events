@@ -1,12 +1,14 @@
 import React, { useState } from 'react';
 import { Facebook, Instagram, Youtube, MessageCircle, ArrowRight, Heart } from 'lucide-react';
+import { CMSState } from '../cmsData';
 import Logo from './Logo';
 
 interface FooterProps {
   onNavigate: (sectionId: string) => void;
+  cmsData: CMSState;
 }
 
-export default function Footer({ onNavigate }: FooterProps) {
+export default function Footer({ onNavigate, cmsData }: FooterProps) {
   const [emailInput, setEmailInput] = useState('');
   const [subscribed, setSubscribed] = useState(false);
 
@@ -18,6 +20,8 @@ export default function Footer({ onNavigate }: FooterProps) {
     setTimeout(() => setSubscribed(false), 4000);
   };
 
+  const { tagline } = cmsData.footer;
+
   return (
     <footer id="contact" className="relative bg-[#030303] border-t border-gold-500/10 pt-20 pb-8 text-left">
       {/* Footer Grid */}
@@ -25,9 +29,13 @@ export default function Footer({ onNavigate }: FooterProps) {
         
         {/* Column 1 - Brand & Socials */}
         <div className="flex flex-col gap-5">
-          <Logo size="sm" />
+          <Logo 
+            size="sm" 
+            logoText={cmsData.navbar.logoText} 
+            logoSubtext={cmsData.navbar.logoSubtext} 
+          />
           <p className="text-xs text-gray-400 leading-relaxed font-sans font-light mt-2 max-w-sm">
-            We design unforgettable experiences with elegance, creativity, and perfect execution. Specializing in bespoke luxury events across Madurai and South India.
+            {tagline}
           </p>
 
           {/* Social Icons matching visual design */}
@@ -77,36 +85,13 @@ export default function Footer({ onNavigate }: FooterProps) {
             QUICK LINKS
           </h4>
           <ul className="flex flex-col gap-2.5 text-xs text-gray-400 font-sans font-light">
-            <li>
-              <button onClick={() => onNavigate('home')} className="hover:text-gold-300 transition-colors cursor-pointer text-left">
-                Home
-              </button>
-            </li>
-            <li>
-              <button onClick={() => onNavigate('about')} className="hover:text-gold-300 transition-colors cursor-pointer text-left">
-                About Us
-              </button>
-            </li>
-            <li>
-              <button onClick={() => onNavigate('services')} className="hover:text-gold-300 transition-colors cursor-pointer text-left">
-                Services
-              </button>
-            </li>
-            <li>
-              <button onClick={() => onNavigate('portfolio')} className="hover:text-gold-300 transition-colors cursor-pointer text-left">
-                Portfolio
-              </button>
-            </li>
-            <li>
-              <button onClick={() => onNavigate('packages')} className="hover:text-gold-300 transition-colors cursor-pointer text-left">
-                Packages
-              </button>
-            </li>
-            <li>
-              <button onClick={() => onNavigate('contact')} className="hover:text-gold-300 transition-colors cursor-pointer text-left">
-                Contact
-              </button>
-            </li>
+            {cmsData.navbar.links.map((link) => (
+              <li key={link.id}>
+                <button onClick={() => onNavigate(link.id)} className="hover:text-gold-300 transition-colors cursor-pointer text-left capitalize">
+                  {link.label.toLowerCase()}
+                </button>
+              </li>
+            ))}
           </ul>
         </div>
 
@@ -116,36 +101,13 @@ export default function Footer({ onNavigate }: FooterProps) {
             OUR SERVICES
           </h4>
           <ul className="flex flex-col gap-2.5 text-xs text-gray-400 font-sans font-light">
-            <li>
-              <button onClick={() => onNavigate('services')} className="hover:text-gold-300 transition-colors cursor-pointer text-left">
-                Weddings
-              </button>
-            </li>
-            <li>
-              <button onClick={() => onNavigate('services')} className="hover:text-gold-300 transition-colors cursor-pointer text-left">
-                Birthdays
-              </button>
-            </li>
-            <li>
-              <button onClick={() => onNavigate('services')} className="hover:text-gold-300 transition-colors cursor-pointer text-left">
-                Corporate Events
-              </button>
-            </li>
-            <li>
-              <button onClick={() => onNavigate('services')} className="hover:text-gold-300 transition-colors cursor-pointer text-left">
-                Photography
-              </button>
-            </li>
-            <li>
-              <button onClick={() => onNavigate('services')} className="hover:text-gold-300 transition-colors cursor-pointer text-left">
-                Entertainment
-              </button>
-            </li>
-            <li>
-              <button onClick={() => onNavigate('services')} className="hover:text-gold-300 transition-colors cursor-pointer text-left">
-                Catering
-              </button>
-            </li>
+            {cmsData.services.items.slice(0, 6).map((service) => (
+              <li key={service.id}>
+                <button onClick={() => onNavigate('services')} className="hover:text-gold-300 transition-colors cursor-pointer text-left">
+                  {service.title}
+                </button>
+              </li>
+            ))}
           </ul>
         </div>
 
@@ -155,9 +117,9 @@ export default function Footer({ onNavigate }: FooterProps) {
             CONTACT US
           </h4>
           <address className="not-italic flex flex-col gap-2.5 text-xs text-gray-400 font-sans font-light">
-            <span className="text-white font-mono font-medium">6381690032</span>
-            <span>siddharthvibeevents@gmail.com</span>
-            <span>Thirupparankundram, Madurai, India</span>
+            <span className="text-white font-mono font-medium">{cmsData.contact.phone}</span>
+            <span>{cmsData.contact.email}</span>
+            <span>{cmsData.contact.address}</span>
           </address>
 
           {/* Newsletter Box (exact match layout) */}
