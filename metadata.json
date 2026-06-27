@@ -1,0 +1,6 @@
+{
+  "name": "Siddharth Vibe Events",
+  "description": "Premium luxury event management company specializing in weddings, birthdays, corporate events, photography, and catering.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

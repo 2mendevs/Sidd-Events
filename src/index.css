@@ -1,0 +1,101 @@
+@import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;500;600;700;800;900&family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;0,700;1,300;1,400;1,500&family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@300;400;500&family=Pinyon+Script&display=swap');
+@import "tailwindcss";
+
+@theme {
+  --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
+  --font-serif: "Cormorant Garamond", Georgia, serif;
+  --font-display: "Cinzel", "Cinzel Decorative", serif;
+  --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, monospace;
+  --font-signature: "Pinyon Script", cursive;
+
+  --color-gold-50: #fbf8f0;
+  --color-gold-100: #f5eed9;
+  --color-gold-200: #ebdbae;
+  --color-gold-300: #dfc27d;
+  --color-gold-400: #d1a551;
+  --color-gold-500: #c58e37;
+  --color-gold-600: #af732b;
+  --color-gold-700: #8f5824;
+  --color-gold-800: #744520;
+  --color-gold-900: #60391d;
+  --color-gold-950: #371e0f;
+  
+  --color-luxury-black: #050505;
+  --color-luxury-gray: #0d0d0d;
+  --color-luxury-charcoal: #141414;
+}
+
+@layer base {
+  body {
+    background-color: var(--color-luxury-black);
+    color: #e5e5e5;
+    font-family: var(--font-sans);
+    overflow-x: hidden;
+  }
+}
+
+/* Custom Premium Utilities */
+
+/* Gold metallic text effect */
+.text-gold-metallic {
+  background: linear-gradient(135deg, #f3e7c4 0%, #dfc27d 25%, #c58e37 50%, #af732b 75%, #f5eed9 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* Gold glow borders */
+.border-gold-glow {
+  border: 1px solid rgba(197, 142, 55, 0.2);
+  transition: all 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.border-gold-glow:hover {
+  border-color: rgba(197, 142, 55, 0.6);
+  box-shadow: 0 0 20px rgba(197, 142, 55, 0.15);
+}
+
+/* Custom premium scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: #050505;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #c58e37;
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #dfc27d;
+}
+
+/* Luxury marble-like subtle radial background overlay */
+.bg-radial-luxury {
+  background: radial-gradient(circle at 50% 50%, rgba(20, 20, 20, 0.8) 0%, rgba(5, 5, 5, 1) 100%);
+}
+
+/* Shimmer animation for golden elements */
+@keyframes gold-shimmer {
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
+}
+
+.gold-shimmer-btn {
+  background: linear-gradient(90deg, #af732b, #c58e37, #dfc27d, #c58e37, #af732b);
+  background-size: 200% auto;
+  animation: gold-shimmer 6s linear infinite;
+}
+
+.gold-shimmer-btn:hover {
+  background-size: 150% auto;
+  animation-duration: 3s;
+}
+
