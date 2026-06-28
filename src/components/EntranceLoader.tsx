@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { Sparkles, ArrowRight } from 'lucide-react';
+import { Sparkles } from 'lucide-react';
 import { CMSState } from '../cmsData';
 import Logo from './Logo';
 
@@ -10,167 +10,143 @@ interface EntranceLoaderProps {
 }
 
 export default function EntranceLoader({ cmsData, onComplete }: EntranceLoaderProps) {
-  const [showSkip, setShowSkip] = useState(false);
   const [isLogoLoaded, setIsLogoLoaded] = useState(false);
+  const [phase, setPhase] = useState<'bloom' | 'expand' | 'reveal' | 'exit'>('bloom');
 
-  const durationSeconds = cmsData.entranceSettings?.durationSeconds ?? 1.2;
   const brandName = cmsData.entranceSettings?.heading || cmsData.navbar.logoText || "SIDDHARTH VIBE";
   const subtext = cmsData.entranceSettings?.subtext || cmsData.navbar.logoSubtext || "EVENTS";
   const tagline = cmsData.entranceSettings?.tagline || "EXPERIENCE LUXURY EVENTS • MADURAI & BEYOND";
 
-  // Automatically proceed after the defined duration, gated on logo image load if configured
   useEffect(() => {
-    const hasImage = !!cmsData.navbar.logoImage;
-    let timerId: NodeJS.Timeout;
-    let fallbackId: NodeJS.Timeout;
+    // Stage 1: Central dot blooms into a horizon thread
+    const bloomTimer = setTimeout(() => {
+      setPhase('expand');
+    }, 400);
 
-    const startFinishTimer = () => {
-      const totalMs = durationSeconds * 1000;
-      timerId = setTimeout(() => {
-        onComplete();
-      }, totalMs);
-    };
+    // Stage 2: Golden thread expands horizontally
+    const expandTimer = setTimeout(() => {
+      setPhase('reveal');
+    }, 1000);
 
-    if (hasImage && !isLogoLoaded) {
-      // Wait up to 800ms for logo to load, otherwise proceed with fallback
-      fallbackId = setTimeout(() => {
-        setIsLogoLoaded(true);
-      }, 800);
-    } else {
-      startFinishTimer();
-    }
+    // Stage 3: The final exit sequence starts
+    const exitTimer = setTimeout(() => {
+      setPhase('exit');
+    }, 2400);
 
-    // Show skip button quickly
-    const skipTimer = setTimeout(() => {
-      setShowSkip(cmsData.entranceSettings?.showSkipButton !== false);
-    }, Math.min(300, (durationSeconds * 1000) / 2));
+    // Stage 4: Trigger parent complete when animation ends
+    const completeTimer = setTimeout(() => {
+      onComplete();
+    }, 3000);
+
+    // Safe unblock fallback if anything prevents render
+    const fallbackTimer = setTimeout(() => {
+      onComplete();
+    }, 4500);
 
     return () => {
-      clearTimeout(timerId);
-      clearTimeout(fallbackId);
-      clearTimeout(skipTimer);
+      clearTimeout(bloomTimer);
+      clearTimeout(expandTimer);
+      clearTimeout(exitTimer);
+      clearTimeout(completeTimer);
+      clearTimeout(fallbackTimer);
     };
-  }, [durationSeconds, cmsData.entranceSettings?.showSkipButton, onComplete, cmsData.navbar.logoImage, isLogoLoaded]);
+  }, [onComplete]);
 
   return (
-    <motion.div
-      initial={{ opacity: 1 }}
-      exit={{ 
-        opacity: 0,
-        scale: 1.01,
-        transition: { duration: 0.5, ease: [0.25, 1, 0.5, 1] } 
-      }}
-      className="fixed inset-0 z-[1000] w-full h-full bg-[#030303] flex flex-col items-center justify-center overflow-hidden transform-gpu"
-    >
-      {/* Luxurious Backdrop Grid & Spotlight */}
-      <div className="absolute inset-0 bg-[linear-gradient(to_right,rgba(197,142,55,0.02)_1px,transparent_1px),linear-gradient(to_bottom,rgba(197,142,55,0.02)_1px,transparent_1px)] bg-[size:5rem_5rem]" />
-      <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(197,142,55,0.12)_0%,transparent_75%)]" />
+    <div className="fixed inset-0 z-[1000] w-full h-full overflow-hidden bg-black select-none pointer-events-none">
+      {/* Cinematic Golden Aura background glow */}
+      <div className="absolute inset-0 bg-gradient-to-b from-[#050505] to-[#020202]" />
+      <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(197,142,55,0.06)_0%,transparent_70%)]" />
 
-      {/* Decorative Golden Corner Accents */}
-      <div className="absolute inset-6 border border-gold-500/5 pointer-events-none" />
-      <div className="absolute inset-8 border border-gold-500/10 pointer-events-none" />
-      <div className="absolute top-6 left-6 w-8 h-8 border-t-2 border-l-2 border-gold-400/30" />
-      <div className="absolute top-6 right-6 w-8 h-8 border-t-2 border-r-2 border-gold-400/30" />
-      <div className="absolute bottom-6 left-6 w-8 h-8 border-b-2 border-l-2 border-gold-400/30" />
-      <div className="absolute bottom-6 right-6 w-8 h-8 border-b-2 border-r-2 border-gold-400/30" />
-
-      {/* Unified Main Content Container */}
-      <motion.div 
-        initial={{ opacity: 0, scale: 0.97, y: 10 }}
-        animate={{ opacity: 1, scale: 1, y: 0 }}
-        transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
-        className="relative z-10 flex flex-col items-center text-center px-4 max-w-lg transform-gpu"
-      >
-        {/* Soft Golden Aura behind the logo */}
-        <div className="absolute w-72 h-72 rounded-full bg-[radial-gradient(circle,rgba(197,142,55,0.15)_0%,transparent_70%)] blur-2xl pointer-events-none" />
-
-        {/* Cinematic Logo Wrapper */}
-        <div className="relative mb-6 flex items-center justify-center">
-          {/* Outer elegant spinning ring */}
-          <motion.div 
-            className="absolute w-40 h-40 rounded-full border border-gold-500/15"
-            animate={{ rotate: 360 }}
-            transition={{ duration: 20, repeat: Infinity, ease: "linear" }}
-          />
-          {/* Inner dashed reverse spinning ring */}
-          <motion.div 
-            className="absolute w-36 h-36 rounded-full border border-dashed border-gold-400/10"
-            animate={{ rotate: -360 }}
-            transition={{ duration: 12, repeat: Infinity, ease: "linear" }}
-          />
-          {/* Gentle breathing ring */}
-          <motion.div 
-            className="absolute w-44 h-44 rounded-full border border-gold-600/5"
-            animate={{ scale: [1, 1.04, 1], opacity: [0.4, 0.8, 0.4] }}
-            transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
-          />
-
-          <div className="relative z-10 p-2">
-            <Logo 
-              size="lg" 
-              showText={false}
-              logoImage={cmsData.navbar.logoImage}
-              onLoad={() => setIsLogoLoaded(true)}
-            />
-          </div>
-        </div>
-
-        {/* Wordmark & Subtitle */}
-        <div className="space-y-4">
-          <h1 className="relative font-display font-bold text-2xl md:text-3xl tracking-[0.35em] text-white uppercase py-1 select-none">
-            {brandName}
-            {/* Elegant premium gold shimmer light pass */}
-            <motion.div 
-              className="absolute inset-0 bg-gradient-to-r from-transparent via-gold-300/25 to-transparent skew-x-12 pointer-events-none"
-              animate={{ x: ['-100%', '200%'] }}
-              transition={{ duration: 2.0, repeat: Infinity, repeatDelay: 1.5, ease: "easeInOut" }}
-            />
-          </h1>
-
-          {/* Premium Animated Subtext */}
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ duration: 0.4, delay: 0.1 }}
-            className="text-[10px] text-gold-400/80 font-mono uppercase tracking-[0.45em] font-light flex items-center justify-center gap-1.5 select-none"
-          >
-            <Sparkles size={8} className="text-gold-400/60 animate-pulse" />
-            {subtext}
-            <Sparkles size={8} className="text-gold-400/60 animate-pulse" />
-          </motion.div>
-        </div>
-
-        {/* Luxury Skip Action */}
-        <AnimatePresence>
-          {showSkip && (
-            <motion.div
-              initial={{ opacity: 0, y: 8 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -8 }}
-              transition={{ duration: 0.3 }}
-              className="mt-8"
-            >
-              <button
-                onClick={onComplete}
-                className="group flex items-center gap-2 px-5 py-2 bg-gold-400/5 hover:bg-gold-400/10 border border-gold-400/20 hover:border-gold-300/60 text-gold-300 text-[9px] font-mono uppercase tracking-[0.2em] transition-all cursor-pointer backdrop-blur-sm"
-              >
-                <span>ENTER PREVIEWS</span>
-                <ArrowRight size={10} className="transform group-hover:translate-x-1 transition-transform" />
-              </button>
-            </motion.div>
-          )}
-        </AnimatePresence>
-      </motion.div>
-
-      {/* Decorative Base Tagline */}
+      {/* Theatrical Upper and Lower Matte Curtains that split open during 'exit' */}
       <motion.div
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 0.3 }}
-        transition={{ delay: 0.2, duration: 0.8 }}
-        className="absolute bottom-8 left-1/2 -translate-x-1/2 text-[8px] font-mono tracking-[0.3em] uppercase text-gray-500 flex items-center justify-center gap-2 whitespace-nowrap px-4 text-center select-none"
-      >
-        <span>{tagline}</span>
-      </motion.div>
-    </motion.div>
+        initial={{ y: '0%' }}
+        animate={phase === 'exit' ? { y: '-100%' } : { y: '0%' }}
+        transition={{ duration: 0.85, ease: [0.77, 0, 0.175, 1] }}
+        className="absolute top-0 left-0 right-0 h-1/2 bg-[#030303] z-20 border-b border-gold-500/5 transform-gpu"
+      />
+      <motion.div
+        initial={{ y: '0%' }}
+        animate={phase === 'exit' ? { y: '100%' } : { y: '0%' }}
+        transition={{ duration: 0.85, ease: [0.77, 0, 0.175, 1] }}
+        className="absolute bottom-0 left-0 right-0 h-1/2 bg-[#030303] z-20 border-t border-gold-500/5 transform-gpu"
+      />
+
+      {/* Main Cinematic stage */}
+      <div className="absolute inset-0 z-30 flex flex-col items-center justify-center px-4">
+        
+        {/* Step 1: Central Golden Bloom Star Point */}
+        {phase === 'bloom' && (
+          <motion.div
+            initial={{ scale: 0, opacity: 0 }}
+            animate={{ scale: [0, 1.3, 1], opacity: 1 }}
+            transition={{ duration: 0.4, ease: "easeOut" }}
+            className="w-2.5 h-2.5 rounded-full bg-gradient-to-r from-gold-200 via-gold-400 to-gold-500 shadow-[0_0_20px_#dfc27d]"
+          />
+        )}
+
+        {/* Step 2: Horizon Line Thread & Logo Reveal */}
+        {phase !== 'bloom' && (
+          <div className="relative flex flex-col items-center justify-center w-full max-w-xl">
+            
+            {/* Elegant Horizontal Golden Thread */}
+            <motion.div
+              initial={{ width: '0%' }}
+              animate={{ width: phase === 'expand' ? '40%' : '100%' }}
+              transition={{ duration: phase === 'expand' ? 0.6 : 0.9, ease: [0.25, 1, 0.5, 1] }}
+              className="h-[1px] bg-gradient-to-r from-transparent via-gold-400/80 to-transparent relative my-8"
+            >
+              {/* Central glowing micro dot on the line */}
+              <motion.div 
+                animate={{ opacity: phase === 'reveal' ? 0 : 1 }}
+                className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-1.5 h-1.5 rounded-full bg-gold-200 shadow-[0_0_12px_#dfc27d]"
+              />
+            </motion.div>
+
+            {/* Logo Masked Entrance */}
+            <motion.div
+              initial={{ opacity: 0, y: 15 }}
+              animate={phase === 'reveal' ? { opacity: 1, y: 0 } : { opacity: 0, y: 15 }}
+              transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
+              className="absolute -top-32 flex flex-col items-center"
+            >
+              <div className="relative p-1">
+                <Logo 
+                  size="lg" 
+                  showText={false}
+                  logoImage={cmsData.navbar.logoImage}
+                  onLoad={() => setIsLogoLoaded(true)}
+                />
+              </div>
+            </motion.div>
+
+            {/* Wordmark and Tagline Masked Entrance */}
+            <motion.div
+              initial={{ opacity: 0, y: -15 }}
+              animate={phase === 'reveal' ? { opacity: 1, y: 0 } : { opacity: 0, y: -15 }}
+              transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1], delay: 0.1 }}
+              className="absolute top-12 flex flex-col items-center space-y-3"
+            >
+              <h1 className="font-display font-bold text-xl md:text-2xl tracking-[0.4em] text-white uppercase select-none text-center">
+                {brandName}
+              </h1>
+              
+              {/* Premium Subtext */}
+              <div className="text-[9px] text-gold-400/80 font-mono uppercase tracking-[0.4em] font-light flex items-center gap-1.5 select-none">
+                <Sparkles size={8} className="text-gold-400/60 animate-pulse" />
+                {subtext}
+                <Sparkles size={8} className="text-gold-400/60 animate-pulse" />
+              </div>
+            </motion.div>
+
+          </div>
+        )}
+
+      </div>
+
+      {/* Decorative Widescreen Overlay borders for cinema feels */}
+      <div className="absolute top-0 left-0 right-0 h-4 bg-black/80 z-40 pointer-events-none" />
+      <div className="absolute bottom-0 left-0 right-0 h-4 bg-black/80 z-40 pointer-events-none" />
+    </div>
   );
 }
