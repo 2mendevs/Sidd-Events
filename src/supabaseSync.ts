@@ -116,16 +116,47 @@ export async function loadBookingsFromDB(): Promise<ConsultationRequest[] | null
 // Upsert a booking to Supabase
 export async function upsertBookingToDB(booking: ConsultationRequest): Promise<boolean> {
   try {
-    const row = mapBookingToRow(booking);
-    const { error } = await supabase
-      .from('bookings')
-      .upsert(row);
+    let row = mapBookingToRow(booking);
+    let attempts = 0;
+    const maxAttempts = 15; // Max possible table columns
 
-    if (error) {
+    while (attempts < maxAttempts) {
+      const { error } = await supabase
+        .from('bookings')
+        .upsert(row);
+
+      if (!error) {
+        return true;
+      }
+
+      // Check if it's an undefined column error
+      const isUndefinedColumn = 
+        error.code === '42703' || 
+        error.message?.toLowerCase().includes('column') ||
+        error.message?.toLowerCase().includes('could not find');
+
+      if (isUndefinedColumn && error.message) {
+        // Try to extract the column name inside single quotes
+        const match = error.message.match(/'([^']+)'/);
+        if (match && match[1]) {
+          const columnName = match[1];
+          if (columnName in row) {
+            console.warn(`Supabase table is missing column '${columnName}'. Stripping and retrying...`);
+            const nextRow = { ...row };
+            delete (nextRow as any)[columnName];
+            row = nextRow;
+            attempts++;
+            continue;
+          }
+        }
+      }
+
+      // If we couldn't resolve it or it's a different error, log and fail
       console.error('Error upserting booking to Supabase:', error.message);
       return false;
     }
-    return true;
+
+    return false;
   } catch (err) {
     console.error('Failed upserting booking to Supabase:', err);
     return false;

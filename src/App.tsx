@@ -413,7 +413,7 @@ export default function App() {
           </main>
 
           {/* Grand Footer */}
-          <Footer onNavigate={handleNavigate} cmsData={cmsData} />
+          <Footer onNavigate={handleNavigate} cmsData={cmsData} onOpenAdmin={() => setIsAdminOpen(true)} />
         </>
       ) : (
         <AnimatePresence mode="wait">

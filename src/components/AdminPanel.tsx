@@ -9,7 +9,7 @@ import { motion, AnimatePresence } from 'motion/react';
 import { ConsultationRequest } from '../types';
 import { CMSState, ServiceCard, GalleryItem } from '../cmsData';
 import { DBStatus } from '../supabaseSync';
-import { SUPABASE_SQL_SCHEMA } from '../supabaseClient';
+import { SUPABASE_SQL_SCHEMA, SUPABASE_URL } from '../supabaseClient';
 
 interface AdminPanelProps {
   isOpen: boolean;
@@ -25,8 +25,9 @@ interface AdminPanelProps {
   dbStatus?: DBStatus;
 }
 
-// Passcode: admin (very easy for client to access but keeps it secure from random visitors)
-const CORRECT_PASSCODE = 'admin';
+// Admin Credentials
+const ADMIN_EMAIL = 'siddharth2307.mba@gmail.com';
+const ADMIN_PASSWORD = 'Siddhu@3144';
 
 interface ImageUploaderProps {
   key?: any;
@@ -280,7 +281,8 @@ export default function AdminPanel({
     setProductDeleteConfirmId(null);
   };
 
-  const [passcode, setPasscode] = useState('');
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [error, setError] = useState('');
   const [activeTab, setActiveTab] = useState<'dashboard' | 'bookings' | 'calendar' | 'new-booking' | 'cms' | 'products' | 'database'>('dashboard');
@@ -331,19 +333,20 @@ export default function AdminPanel({
   // Reset states when opened/closed
   useEffect(() => {
     if (!isOpen) {
-      setPasscode('');
+      setEmail('');
+      setPassword('');
       setError('');
     }
   }, [isOpen]);
 
   const handleLoginSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (passcode.toLowerCase() === CORRECT_PASSCODE) {
+    if (email.trim().toLowerCase() === ADMIN_EMAIL && password === ADMIN_PASSWORD) {
       setIsAuthenticated(true);
       setError('');
     } else {
-      setError('Invalid passcode. Access Denied.');
-      setPasscode('');
+      setError('Invalid Email or Password. Access Denied.');
+      setPassword('');
     }
   };
 
@@ -517,38 +520,55 @@ export default function AdminPanel({
               This terminal provides access to live customer consultation logs, financial estimates, and scheduler agendas.
             </p>
 
-            <form onSubmit={handleLoginSubmit} className="w-full space-y-4">
-              <div className="relative">
+            <form onSubmit={handleLoginSubmit} className="w-full space-y-4 text-left">
+              <div>
+                <label className="block text-[10px] font-mono tracking-wider text-gold-400 uppercase mb-1.5">Email Address</label>
                 <input
-                  type="password"
-                  placeholder="Enter Passcode..."
-                  value={passcode}
+                  type="email"
+                  placeholder="Enter email address..."
+                  value={email}
                   onChange={(e) => {
-                    setPasscode(e.target.value);
+                    setEmail(e.target.value);
                     setError('');
                   }}
-                  className="w-full bg-luxury-gray/80 border border-gold-500/15 focus:border-gold-400 px-4 py-3 text-center text-sm text-white tracking-[0.3em] font-mono rounded-none focus:outline-none shadow-inner"
+                  className="w-full bg-luxury-gray/80 border border-gold-500/15 focus:border-gold-400 px-4 py-3 text-sm text-white font-mono rounded-none focus:outline-none shadow-inner"
+                  required
                   autoFocus
                 />
               </div>
 
+              <div>
+                <label className="block text-[10px] font-mono tracking-wider text-gold-400 uppercase mb-1.5">Password</label>
+                <input
+                  type="password"
+                  placeholder="Enter password..."
+                  value={password}
+                  onChange={(e) => {
+                    setPassword(e.target.value);
+                    setError('');
+                  }}
+                  className="w-full bg-luxury-gray/80 border border-gold-500/15 focus:border-gold-400 px-4 py-3 text-sm text-white font-mono rounded-none focus:outline-none shadow-inner"
+                  required
+                />
+              </div>
+
               {error && (
-                <p className="text-[10px] font-mono text-rose-400 tracking-wider uppercase bg-rose-500/10 border border-rose-500/15 py-1.5">
+                <p className="text-[10px] font-mono text-rose-400 tracking-wider uppercase bg-rose-500/10 border border-rose-500/15 py-1.5 text-center">
                   {error}
                 </p>
               )}
 
               <button
                 type="submit"
-                className="w-full gold-shimmer-btn py-3 text-luxury-black font-semibold text-xs tracking-[0.2em] uppercase focus:outline-none cursor-pointer"
+                className="w-full gold-shimmer-btn py-3 mt-2 text-luxury-black font-semibold text-xs tracking-[0.2em] uppercase focus:outline-none cursor-pointer"
               >
                 UNLOCK TERMINAL
               </button>
             </form>
 
             <div className="mt-8 border-t border-gold-500/10 pt-4 w-full text-center">
-              <p className="text-[10px] font-mono text-gray-500 uppercase">
-                Demo Passcode: <span className="text-gold-300 font-bold">admin</span>
+              <p className="text-[9px] font-mono text-gray-600 uppercase">
+                Authorized Siddharth Vibe Personnel Only
               </p>
             </div>
           </div>
@@ -3203,7 +3223,7 @@ export default function AdminPanel({
                                 </div>
                                 <div className="flex justify-between py-1 border-b border-gold-500/5">
                                   <span className="text-gray-500">Active URL:</span>
-                                  <span className="text-gold-300 font-mono text-[10px]">https://pontvvtvxmldaqkwwuxn.supabase.co</span>
+                                  <span className="text-gold-300 font-mono text-[10px] break-all">{SUPABASE_URL}</span>
                                 </div>
                                 <div className="flex justify-between py-1 border-b border-gold-500/5">
                                   <span className="text-gray-500">Security Mode:</span>

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Facebook, Instagram, Youtube, MessageCircle, ArrowRight, Heart } from 'lucide-react';
 import { CMSState } from '../cmsData';
 import Logo from './Logo';
@@ -6,11 +6,31 @@ import Logo from './Logo';
 interface FooterProps {
   onNavigate: (sectionId: string) => void;
   cmsData: CMSState;
+  onOpenAdmin: () => void;
 }
 
-export default function Footer({ onNavigate, cmsData }: FooterProps) {
+export default function Footer({ onNavigate, cmsData, onOpenAdmin }: FooterProps) {
   const [emailInput, setEmailInput] = useState('');
   const [subscribed, setSubscribed] = useState(false);
+  const [clickCount, setClickCount] = useState(0);
+
+  const handleCopyrightClick = () => {
+    const next = clickCount + 1;
+    if (next >= 2) {
+      onOpenAdmin();
+      setClickCount(0);
+    } else {
+      setClickCount(next);
+    }
+  };
+
+  // Reset click count after a delay
+  useEffect(() => {
+    if (clickCount > 0) {
+      const timer = setTimeout(() => setClickCount(0), 400);
+      return () => clearTimeout(timer);
+    }
+  }, [clickCount]);
 
   const handleSubscribe = (e: React.FormEvent) => {
     e.preventDefault();
@@ -30,7 +50,7 @@ export default function Footer({ onNavigate, cmsData }: FooterProps) {
         {/* Column 1 - Brand & Socials */}
         <div className="flex flex-col gap-5">
           <Logo 
-            size="sm" 
+            size="md" 
             logoText={cmsData.navbar.logoText} 
             logoSubtext={cmsData.navbar.logoSubtext} 
             logoImage={cmsData.navbar.logoImage}
@@ -156,7 +176,10 @@ export default function Footer({ onNavigate, cmsData }: FooterProps) {
 
       {/* Footer Bottom copyright area */}
       <div className="max-w-7xl mx-auto px-6 md:px-12 border-t border-gold-500/10 pt-8 flex flex-col sm:flex-row justify-between items-center gap-4 text-center">
-        <p className="text-[10px] text-gray-500 font-sans font-light">
+        <p 
+          onClick={handleCopyrightClick}
+          className="text-[10px] text-gray-500 font-sans font-light select-none cursor-default"
+        >
           © 2025 Siddharth Vibe Events. All Rights Reserved.
         </p>
         <p className="text-[10px] text-gray-500 font-sans font-light flex items-center gap-1.5">

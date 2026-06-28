@@ -85,16 +85,6 @@ export default function Header({ activeSection, onNavigate, onBookConsultation, 
               {cmsData.navbar.ctaText}
             </button>
 
-            {/* Admin Console Lock */}
-            <button
-              onClick={onOpenAdmin}
-              className="border border-gold-500/25 hover:border-gold-400/60 hover:bg-gold-500/10 text-gold-400 hover:text-gold-300 transition-all duration-300 focus:outline-none cursor-pointer flex items-center justify-center gap-1.5 text-[9px] font-mono tracking-widest uppercase py-2.5 px-3"
-              title="Admin Terminal"
-            >
-              <Shield size={12} className="animate-pulse" />
-              <span className="hidden xl:inline">ADMIN</span>
-            </button>
-
             {/* Hamburger Icon */}
             <button
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
@@ -162,16 +152,6 @@ export default function Header({ activeSection, onNavigate, onBookConsultation, 
                   className="w-full text-center bg-gradient-to-r from-gold-600 to-gold-400 text-luxury-black font-semibold text-xs tracking-widest py-3 uppercase cursor-pointer"
                 >
                   {cmsData.navbar.ctaText}
-                </button>
-                <button
-                  onClick={() => {
-                    setMobileMenuOpen(false);
-                    onOpenAdmin();
-                  }}
-                  className="w-full text-center border border-gold-500/30 hover:border-gold-400 bg-luxury-black/50 text-gold-400 font-semibold text-xs tracking-widest py-3 uppercase cursor-pointer flex items-center justify-center gap-2"
-                >
-                  <Shield size={14} className="animate-pulse" />
-                  ADMIN CONSOLE
                 </button>
               </div>
             </div>

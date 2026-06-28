@@ -177,17 +177,10 @@ export default function Services({
                   </ul>
                 </div>
 
-                {/* Pricing / CTA */}
-                <div className="border-t border-gold-500/10 pt-6 mt-2 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-                  <div>
-                    <span className="text-[9px] font-mono tracking-widest text-gray-500 uppercase">ESTIMATED STARTING FROM</span>
-                    <p className="text-lg font-mono text-gold-400 font-semibold mt-1">
-                      ₹{selectedService.basePrice.toLocaleString()} <span className="text-xs text-gray-500 font-normal">onwards</span>
-                    </p>
-                  </div>
-                  
+                {/* CTA Actions */}
+                <div className="border-t border-gold-500/10 pt-6 mt-2 flex flex-col sm:flex-row sm:items-center sm:justify-end gap-4 w-full">
                   {/* Action */}
-                  <div className="flex flex-wrap items-center gap-3">
+                  <div className="flex flex-wrap items-center gap-3 w-full sm:w-auto justify-end">
                     {onViewServicePortfolio && (
                       <button
                         onClick={() => {

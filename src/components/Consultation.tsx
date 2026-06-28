@@ -157,10 +157,10 @@ export default function Consultation({ selectedServiceId, onBookingSuccess, cmsD
         {/* ========================================== */}
         {/* 2. REQUEST CONSULTATION FORM (TWO COLUMN)  */}
         {/* ========================================== */}
-        <div id="consultation-form" className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-stretch pt-2 max-w-5xl mx-auto">
+        <div id="consultation-form" className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-stretch pt-2 max-w-6xl mx-auto">
           
           {/* Left Column: Interactive Map, Address, Contact details & Socials */}
-          <div className="lg:col-span-5 bg-luxury-gray border border-gold-500/10 p-6 md:p-8 relative shadow-[0_15px_50px_rgba(0,0,0,0.6)] flex flex-col justify-between">
+          <div className="lg:col-span-6 bg-luxury-gray border border-gold-500/10 p-6 md:p-8 relative shadow-[0_15px_50px_rgba(0,0,0,0.6)] flex flex-col justify-start gap-5">
             {/* Corner accent decorations */}
             <div className="absolute top-0 left-0 w-8 h-8 border-t border-l border-gold-400/20" />
             <div className="absolute top-0 right-0 w-8 h-8 border-t border-r border-gold-400/20" />
@@ -176,9 +176,9 @@ export default function Consultation({ selectedServiceId, onBookingSuccess, cmsD
               </div>
 
               {/* LUXURY REALISTIC EMBEDDED MAP */}
-              <div className="relative w-full h-[310px] bg-luxury-black border border-gold-500/15 overflow-hidden group shadow-[0_10px_30px_rgba(0,0,0,0.5)] flex flex-col justify-between">
+              <div className="relative w-full h-[285px] bg-luxury-black border border-gold-500/15 overflow-hidden group shadow-[0_10px_30px_rgba(0,0,0,0.5)] flex flex-col justify-between">
                 {/* Embedded Real Google Map with high contrast, luxurious dark-themed styling filters */}
-                <div className="relative w-full h-[260px] overflow-hidden">
+                <div className="relative w-full h-[235px] overflow-hidden">
                   <iframe
                     src="https://maps.google.com/maps?q=Siddharth%20Vibe%20Event,%20Opp%20Hdfc%20Bank,%20Thirupparankundram,%20Madurai,%20Tamil%20Nadu%20625005&t=&z=15&ie=UTF8&iwloc=&output=embed"
                     className="w-full h-full border-0 opacity-80 hover:opacity-100 transition-opacity duration-500 filter invert-[90%] hue-rotate-[180deg] saturate-[30%] brightness-[90%] contrast-[110%]"
@@ -244,54 +244,10 @@ export default function Consultation({ selectedServiceId, onBookingSuccess, cmsD
                 </div>
               </div>
             </div>
-
-            {/* Social Media Redirection Links */}
-            <div className="border-t border-gold-500/10 pt-5 mt-5">
-              <h6 className="text-[10px] font-mono tracking-widest text-gold-400 uppercase mb-4">Connect With Us</h6>
-              <div className="flex items-center gap-3">
-                <a
-                  href="https://instagram.com"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="w-10 h-10 rounded-full border border-gold-500/10 hover:border-gold-400 flex items-center justify-center text-gray-400 hover:text-white bg-luxury-black/40 hover:bg-gold-500/5 transition-all duration-300 cursor-pointer"
-                  title="Instagram"
-                >
-                  <Instagram size={16} />
-                </a>
-                <a
-                  href="https://facebook.com"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="w-10 h-10 rounded-full border border-gold-500/10 hover:border-gold-400 flex items-center justify-center text-gray-400 hover:text-white bg-luxury-black/40 hover:bg-gold-500/5 transition-all duration-300 cursor-pointer"
-                  title="Facebook"
-                >
-                  <Facebook size={16} />
-                </a>
-                <a
-                  href="https://linkedin.com"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="w-10 h-10 rounded-full border border-gold-500/10 hover:border-gold-400 flex items-center justify-center text-gray-400 hover:text-white bg-luxury-black/40 hover:bg-gold-500/5 transition-all duration-300 cursor-pointer"
-                  title="LinkedIn"
-                >
-                  <Linkedin size={16} />
-                </a>
-                <a
-                  href="https://pinterest.com"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="w-10 h-10 rounded-full border border-gold-500/10 hover:border-gold-400 flex items-center justify-center text-gray-400 hover:text-white bg-luxury-black/40 hover:bg-gold-500/5 transition-all duration-300 cursor-pointer"
-                  title="Pinterest"
-                >
-                  <Compass size={16} />
-                </a>
-              </div>
-            </div>
-
           </div>
 
           {/* Right Column: Request Consultation Scheduler Form */}
-          <div className="lg:col-span-7 bg-luxury-gray border border-gold-500/10 p-6 md:p-8 relative shadow-[0_15px_50px_rgba(0,0,0,0.6)] flex flex-col justify-between">
+          <div className="lg:col-span-6 bg-luxury-gray border border-gold-500/10 p-6 md:p-8 relative shadow-[0_15px_50px_rgba(0,0,0,0.6)] flex flex-col justify-start gap-4">
             {/* Corner accent decorations */}
             <div className="absolute top-0 left-0 w-8 h-8 border-t border-l border-gold-400/20" />
             <div className="absolute top-0 right-0 w-8 h-8 border-t border-r border-gold-400/20" />
