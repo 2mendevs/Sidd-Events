@@ -11,38 +11,54 @@ interface EntranceLoaderProps {
 
 export default function EntranceLoader({ cmsData, onComplete }: EntranceLoaderProps) {
   const [showSkip, setShowSkip] = useState(false);
+  const [isLogoLoaded, setIsLogoLoaded] = useState(false);
 
   const durationSeconds = cmsData.entranceSettings?.durationSeconds ?? 1.2;
   const brandName = cmsData.entranceSettings?.heading || cmsData.navbar.logoText || "SIDDHARTH VIBE";
   const subtext = cmsData.entranceSettings?.subtext || cmsData.navbar.logoSubtext || "EVENTS";
   const tagline = cmsData.entranceSettings?.tagline || "EXPERIENCE LUXURY EVENTS • MADURAI & BEYOND";
 
-  // Automatically proceed after the defined duration
+  // Automatically proceed after the defined duration, gated on logo image load if configured
   useEffect(() => {
-    const totalMs = durationSeconds * 1000;
-    
-    const finishTimer = setTimeout(() => {
-      onComplete();
-    }, totalMs);
+    const hasImage = !!cmsData.navbar.logoImage;
+    let timerId: NodeJS.Timeout;
+    let fallbackId: NodeJS.Timeout;
+
+    const startFinishTimer = () => {
+      const totalMs = durationSeconds * 1000;
+      timerId = setTimeout(() => {
+        onComplete();
+      }, totalMs);
+    };
+
+    if (hasImage && !isLogoLoaded) {
+      // Wait up to 800ms for logo to load, otherwise proceed with fallback
+      fallbackId = setTimeout(() => {
+        setIsLogoLoaded(true);
+      }, 800);
+    } else {
+      startFinishTimer();
+    }
 
     // Show skip button quickly
     const skipTimer = setTimeout(() => {
       setShowSkip(cmsData.entranceSettings?.showSkipButton !== false);
-    }, Math.min(400, totalMs / 2));
+    }, Math.min(300, (durationSeconds * 1000) / 2));
 
     return () => {
-      clearTimeout(finishTimer);
+      clearTimeout(timerId);
+      clearTimeout(fallbackId);
       clearTimeout(skipTimer);
     };
-  }, [durationSeconds, cmsData.entranceSettings?.showSkipButton, onComplete]);
+  }, [durationSeconds, cmsData.entranceSettings?.showSkipButton, onComplete, cmsData.navbar.logoImage, isLogoLoaded]);
 
   return (
     <motion.div
       initial={{ opacity: 1 }}
       exit={{ 
         opacity: 0,
-        scale: 1.02,
-        transition: { duration: 0.6, ease: [0.25, 1, 0.5, 1] } 
+        scale: 1.01,
+        transition: { duration: 0.5, ease: [0.25, 1, 0.5, 1] } 
       }}
       className="fixed inset-0 z-[1000] w-full h-full bg-[#030303] flex flex-col items-center justify-center overflow-hidden transform-gpu"
     >
@@ -60,9 +76,9 @@ export default function EntranceLoader({ cmsData, onComplete }: EntranceLoaderPr
 
       {/* Unified Main Content Container */}
       <motion.div 
-        initial={{ opacity: 0, scale: 0.96, y: 15 }}
+        initial={{ opacity: 0, scale: 0.97, y: 10 }}
         animate={{ opacity: 1, scale: 1, y: 0 }}
-        transition={{ duration: 1.0, ease: [0.16, 1, 0.3, 1] }}
+        transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
         className="relative z-10 flex flex-col items-center text-center px-4 max-w-lg transform-gpu"
       >
         {/* Soft Golden Aura behind the logo */}
@@ -94,6 +110,7 @@ export default function EntranceLoader({ cmsData, onComplete }: EntranceLoaderPr
               size="lg" 
               showText={false}
               logoImage={cmsData.navbar.logoImage}
+              onLoad={() => setIsLogoLoaded(true)}
             />
           </div>
         </div>
@@ -114,7 +131,7 @@ export default function EntranceLoader({ cmsData, onComplete }: EntranceLoaderPr
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
-            transition={{ duration: 0.8, delay: 0.2 }}
+            transition={{ duration: 0.4, delay: 0.1 }}
             className="text-[10px] text-gold-400/80 font-mono uppercase tracking-[0.45em] font-light flex items-center justify-center gap-1.5 select-none"
           >
             <Sparkles size={8} className="text-gold-400/60 animate-pulse" />
@@ -127,10 +144,10 @@ export default function EntranceLoader({ cmsData, onComplete }: EntranceLoaderPr
         <AnimatePresence>
           {showSkip && (
             <motion.div
-              initial={{ opacity: 0, y: 10 }}
+              initial={{ opacity: 0, y: 8 }}
               animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -10 }}
-              transition={{ duration: 0.4 }}
+              exit={{ opacity: 0, y: -8 }}
+              transition={{ duration: 0.3 }}
               className="mt-8"
             >
               <button
@@ -149,7 +166,7 @@ export default function EntranceLoader({ cmsData, onComplete }: EntranceLoaderPr
       <motion.div
         initial={{ opacity: 0 }}
         animate={{ opacity: 0.3 }}
-        transition={{ delay: 0.3, duration: 1.0 }}
+        transition={{ delay: 0.2, duration: 0.8 }}
         className="absolute bottom-8 left-1/2 -translate-x-1/2 text-[8px] font-mono tracking-[0.3em] uppercase text-gray-500 flex items-center justify-center gap-2 whitespace-nowrap px-4 text-center select-none"
       >
         <span>{tagline}</span>
