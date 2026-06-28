@@ -66,6 +66,26 @@ export interface SocialLink {
   icon: string;
 }
 
+export interface ProductItem {
+  id: string;
+  name: string;
+  category: string;
+  description: string;
+  imageUrl: string;
+  tags?: string[];
+}
+
+export interface MascotSection {
+  badgeText: string;
+  heading: string;
+  description: string;
+  highlightWords: string;
+  tags: string[];
+  imageUrl: string;
+  ctaText: string;
+  products: ProductItem[];
+}
+
 export interface CMSState {
   navbar: {
     logoText: string;
@@ -154,6 +174,7 @@ export interface CMSState {
     durationSeconds: number; // e.g., 1.5
     showSkipButton: boolean;
   };
+  mascotSection: MascotSection;
 }
 
 export const DEFAULT_CMS_DATA: CMSState = {
@@ -588,6 +609,65 @@ export const DEFAULT_CMS_DATA: CMSState = {
     tagline: "EXPERIENCE LUXURY EVENTS • MADURAI & BEYOND",
     durationSeconds: 1.2, // fast & snappy, but still elegant
     showSkipButton: true,
+  },
+  mascotSection: {
+    badgeText: "SINCE 1991",
+    heading: "Mascot Costumes & Inflatable Characters",
+    description: "From towering 12-foot mascots to adorable 6-foot characters — our premium export-quality costumes are available for sale & rental across Tamil Nadu and beyond.",
+    highlightWords: "sale & rental",
+    tags: ["Gorilla", "Teddy Bear", "Dinosaur", "Duck", "Rooster", "Panda", "+ More"],
+    imageUrl: "https://images.unsplash.com/photo-1596461404969-9ae70f2830c1?auto=format&fit=crop&q=80&w=800",
+    ctaText: "View Products",
+    products: [
+      {
+        id: "prod-1",
+        name: "Premium King Kong Gorilla Costume",
+        category: "Mascot Costume",
+        description: "An impressive, high-fidelity 8-foot tall gorilla mascot perfect for high-impact welcome entries, crowd activation, and premium photoshoots.",
+        imageUrl: "https://images.unsplash.com/photo-1541562232579-512a21360020?auto=format&fit=crop&q=80&w=600",
+        tags: ["Rental", "Live Performance"]
+      },
+      {
+        id: "prod-2",
+        name: "Pink Velvet Royal Teddy Bear",
+        category: "Mascot Costume",
+        description: "An incredibly soft, luxury pink velvet teddy bear costume with customized accessories. Ideal for grand birthdays, kids' parties, and baby showers.",
+        imageUrl: "https://images.unsplash.com/photo-1559251606-c623743a6d76?auto=format&fit=crop&q=80&w=600",
+        tags: ["Rental", "Sale"]
+      },
+      {
+        id: "prod-3",
+        name: "Colossal T-Rex Inflatable Character",
+        category: "Inflatable Character",
+        description: "A towering 10-foot tall pneumatic inflatable dinosaur character that dances and interacts with guests, creating an unmatched visual spectacle.",
+        imageUrl: "https://images.unsplash.com/photo-1569336415962-a4bd9f69cd83?auto=format&fit=crop&q=80&w=600",
+        tags: ["Rental Only"]
+      },
+      {
+        id: "prod-4",
+        name: "Festive South Indian Rooster Suit",
+        category: "Mascot Costume",
+        description: "A brightly colored, culturally themed rooster costume suited for grand traditional processions, temple entries, and folk celebrations.",
+        imageUrl: "https://images.unsplash.com/photo-1604085572504-a392ddf0b8b8?auto=format&fit=crop&q=80&w=600",
+        tags: ["Rental", "Traditional"]
+      },
+      {
+        id: "prod-5",
+        name: "Fluffy Golden Yellow Duck",
+        category: "Mascot Costume",
+        description: "An adorable oversized yellow duck mascot with charming features, extremely popular for school celebrations and themed birthday entries.",
+        imageUrl: "https://images.unsplash.com/photo-1582905926827-63dfa4aca0cf?auto=format&fit=crop&q=80&w=600",
+        tags: ["Rental", "Sale"]
+      },
+      {
+        id: "prod-6",
+        name: "Giant Friendly Panda Suit",
+        category: "Mascot Costume",
+        description: "A lovable giant panda costume made of premium export-quality breathable material, ensuring smooth energetic dance steps and guest interactions.",
+        imageUrl: "https://images.unsplash.com/photo-1564349683136-77e08dba1ef7?auto=format&fit=crop&q=80&w=600",
+        tags: ["Rental", "Highly Interactive"]
+      }
+    ]
   }
 };
 
@@ -617,6 +697,7 @@ export function loadCMSData(): CMSState {
       footer: { ...DEFAULT_CMS_DATA.footer, ...parsed.footer },
       globalSettings: { ...DEFAULT_CMS_DATA.globalSettings, ...parsed.globalSettings },
       entranceSettings: { ...DEFAULT_CMS_DATA.entranceSettings, ...parsed.entranceSettings },
+      mascotSection: { ...DEFAULT_CMS_DATA.mascotSection, ...parsed.mascotSection },
     };
   } catch (e) {
     return DEFAULT_CMS_DATA;

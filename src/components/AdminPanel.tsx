@@ -3,11 +3,13 @@ import {
   X, Shield, Lock, Briefcase, Calendar, Users, DollarSign, 
   Search, Filter, CheckCircle, Clock, Trash2, Edit3, Save, Sparkles,
   Plus, TrendingUp, Award, Layers, MapPin, Phone, Mail, FileText, ChevronRight, Upload,
-  Sliders, Palette, Image as ImageIcon, Type, Link as LinkIcon, MessageSquare, Compass, Settings
+  Sliders, Palette, Image as ImageIcon, Type, Link as LinkIcon, MessageSquare, Compass, Settings, Database
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { ConsultationRequest } from '../types';
 import { CMSState, ServiceCard, GalleryItem } from '../cmsData';
+import { DBStatus } from '../supabaseSync';
+import { SUPABASE_SQL_SCHEMA } from '../supabaseClient';
 
 interface AdminPanelProps {
   isOpen: boolean;
@@ -20,6 +22,7 @@ interface AdminPanelProps {
   cmsData: CMSState;
   onUpdateCMS: (data: CMSState) => void;
   onReplayIntro?: () => void;
+  dbStatus?: DBStatus;
 }
 
 // Passcode: admin (very easy for client to access but keeps it secure from random visitors)
@@ -175,7 +178,8 @@ export default function AdminPanel({
   onAddManualBooking,
   cmsData: propCmsData,
   onUpdateCMS: propOnUpdateCMS,
-  onReplayIntro
+  onReplayIntro,
+  dbStatus = 'connecting'
 }: AdminPanelProps) {
   const [cmsData, setCmsData] = useState<CMSState>(propCmsData);
 
@@ -198,11 +202,89 @@ export default function AdminPanel({
     setCmsData(updated);
   };
 
+  const handleSaveProduct = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!prodName.trim()) return;
+
+    const tagsArray = prodTags.split(',').map(t => t.trim()).filter(Boolean);
+    const existingProducts = cmsData.mascotSection?.products || [];
+
+    if (editingProductId) {
+      // Edit existing product
+      const updatedProducts = existingProducts.map(p => 
+        p.id === editingProductId 
+          ? { 
+              ...p, 
+              name: prodName, 
+              category: prodCategory, 
+              description: prodDescription, 
+              imageUrl: prodImageUrl || 'https://images.unsplash.com/photo-1596461404969-9ae70f2830c1?auto=format&fit=crop&q=80&w=300',
+              tags: tagsArray 
+            } 
+          : p
+      );
+      onUpdateCMS({
+        ...cmsData,
+        mascotSection: {
+          ...cmsData.mascotSection,
+          products: updatedProducts
+        }
+      });
+      setEditingProductId(null);
+    } else {
+      // Add new product
+      const newProduct = {
+        id: 'prod-' + Math.floor(100000 + Math.random() * 900000),
+        name: prodName,
+        category: prodCategory,
+        description: prodDescription,
+        imageUrl: prodImageUrl || 'https://images.unsplash.com/photo-1596461404969-9ae70f2830c1?auto=format&fit=crop&q=80&w=300',
+        tags: tagsArray
+      };
+      onUpdateCMS({
+        ...cmsData,
+        mascotSection: {
+          ...cmsData.mascotSection,
+          products: [...existingProducts, newProduct]
+        }
+      });
+    }
+
+    // Reset form
+    setProdName('');
+    setProdCategory('Mascot Costume');
+    setProdDescription('');
+    setProdImageUrl('');
+    setProdTags('');
+  };
+
+  const handleEditProductClick = (product: any) => {
+    setEditingProductId(product.id);
+    setProdName(product.name);
+    setProdCategory(product.category);
+    setProdDescription(product.description);
+    setProdImageUrl(product.imageUrl);
+    setProdTags((product.tags || []).join(', '));
+  };
+
+  const handleDeleteProduct = (productId: string) => {
+    const existingProducts = cmsData.mascotSection?.products || [];
+    const updatedProducts = existingProducts.filter(p => p.id !== productId);
+    onUpdateCMS({
+      ...cmsData,
+      mascotSection: {
+        ...cmsData.mascotSection,
+        products: updatedProducts
+      }
+    });
+    setProductDeleteConfirmId(null);
+  };
+
   const [passcode, setPasscode] = useState('');
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [error, setError] = useState('');
-  const [activeTab, setActiveTab] = useState<'dashboard' | 'bookings' | 'calendar' | 'new-booking' | 'cms'>('dashboard');
-  const [cmsSection, setCmsSection] = useState<'global' | 'navbar' | 'hero' | 'about' | 'services' | 'portfolio' | 'testimonials' | 'contact'>('global');
+  const [activeTab, setActiveTab] = useState<'dashboard' | 'bookings' | 'calendar' | 'new-booking' | 'cms' | 'products' | 'database'>('dashboard');
+  const [cmsSection, setCmsSection] = useState<'global' | 'entrance' | 'navbar' | 'hero' | 'about' | 'services' | 'portfolio' | 'testimonials' | 'contact' | 'mascots'>('global');
 
   // Filter & Search states
   const [searchQuery, setSearchQuery] = useState('');
@@ -219,6 +301,17 @@ export default function AdminPanel({
   const [galleryDeleteConfirmId, setGalleryDeleteConfirmId] = useState<string | null>(null);
   const [testimonialDeleteConfirmId, setTestimonialDeleteConfirmId] = useState<string | null>(null);
   const [resetConfirmActive, setResetConfirmActive] = useState(false);
+  const [sqlCopied, setSqlCopied] = useState(false);
+
+  // Product state
+  const [productSearch, setProductSearch] = useState('');
+  const [editingProductId, setEditingProductId] = useState<string | null>(null);
+  const [prodName, setProdName] = useState('');
+  const [prodCategory, setProdCategory] = useState('Mascot Costume');
+  const [prodDescription, setProdDescription] = useState('');
+  const [prodImageUrl, setProdImageUrl] = useState('');
+  const [prodTags, setProdTags] = useState('');
+  const [productDeleteConfirmId, setProductDeleteConfirmId] = useState<string | null>(null);
 
   // New project category helper states
   const [newProjectCategory, setNewProjectCategory] = useState('Weddings');
@@ -523,6 +616,36 @@ export default function AdminPanel({
                 >
                   <Sliders size={14} className={activeTab === 'cms' ? 'text-gold-300' : 'text-gray-400'} />
                   LIVE SITE EDITOR
+                </button>
+
+                <button
+                  onClick={() => setActiveTab('products')}
+                  className={`w-full text-left px-4 py-3 text-xs tracking-wider font-medium flex items-center gap-3 transition-colors cursor-pointer ${
+                    activeTab === 'products' 
+                      ? 'bg-gold-500/10 text-gold-300 border-l-2 border-gold-400 font-semibold' 
+                      : 'text-gray-400 hover:text-white hover:bg-white/5'
+                  }`}
+                >
+                  <Briefcase size={14} className={activeTab === 'products' ? 'text-gold-300' : 'text-gray-400'} />
+                  MANAGE PRODUCTS
+                </button>
+
+                <button
+                  onClick={() => setActiveTab('database')}
+                  className={`w-full text-left px-4 py-3 text-xs tracking-wider font-medium flex items-center justify-between transition-colors cursor-pointer ${
+                    activeTab === 'database' 
+                      ? 'bg-gold-500/10 text-gold-300 border-l-2 border-gold-400 font-semibold' 
+                      : 'text-gray-400 hover:text-white hover:bg-white/5'
+                  }`}
+                >
+                  <div className="flex items-center gap-3">
+                    <Database size={14} className={activeTab === 'database' ? 'text-gold-300' : 'text-gray-400'} />
+                    <span>SUPABASE SYNC</span>
+                  </div>
+                  <span className={`w-2 h-2 rounded-full ${
+                    dbStatus === 'connected' ? 'bg-emerald-500' :
+                    dbStatus === 'setup_required' ? 'bg-amber-500' : 'bg-rose-500 animate-pulse'
+                  }`} title={`Status: ${dbStatus}`} />
                 </button>
               </div>
 
@@ -1244,6 +1367,7 @@ export default function AdminPanel({
                           { id: 'about', label: 'About Us', icon: Type },
                           { id: 'services', label: 'Services', icon: Briefcase },
                           { id: 'portfolio', label: 'Portfolio Grid', icon: Sliders },
+                          { id: 'mascots', label: 'Mascot Section', icon: Award },
                           { id: 'testimonials', label: 'Client Reviews', icon: MessageSquare },
                           { id: 'contact', label: 'Contact Coordinates', icon: Settings },
                         ] as const).map((sec) => {
@@ -2683,6 +2807,471 @@ export default function AdminPanel({
                             </div>
                           </div>
                         )}
+
+                        {cmsSection === 'mascots' && (
+                          <div className="space-y-6">
+                            <h4 className="text-xs font-mono text-gold-300 uppercase tracking-widest border-b border-gold-500/10 pb-2 flex items-center gap-2">
+                              <Award size={14} /> MASCOT SECTION BANNER EDITOR
+                            </h4>
+
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                              <div className="space-y-1">
+                                <label className="text-[10px] font-mono tracking-wider text-gold-400 uppercase">Capsule Badge Text</label>
+                                <input
+                                  type="text"
+                                  value={cmsData.mascotSection.badgeText}
+                                  onChange={(e) => {
+                                    onUpdateCMS({
+                                      ...cmsData,
+                                      mascotSection: { ...cmsData.mascotSection, badgeText: e.target.value }
+                                    });
+                                  }}
+                                  className="w-full bg-luxury-black border border-gold-500/15 px-3 py-2 text-xs text-white focus:outline-none"
+                                />
+                              </div>
+
+                              <div className="space-y-1">
+                                <label className="text-[10px] font-mono tracking-wider text-gold-400 uppercase">Highlight Words (In Gold)</label>
+                                <input
+                                  type="text"
+                                  value={cmsData.mascotSection.highlightWords}
+                                  onChange={(e) => {
+                                    onUpdateCMS({
+                                      ...cmsData,
+                                      mascotSection: { ...cmsData.mascotSection, highlightWords: e.target.value }
+                                    });
+                                  }}
+                                  className="w-full bg-luxury-black border border-gold-500/15 px-3 py-2 text-xs text-white focus:outline-none font-semibold"
+                                />
+                              </div>
+                            </div>
+
+                            <div className="space-y-1">
+                              <label className="text-[10px] font-mono tracking-wider text-gold-400 uppercase">Banner Headline</label>
+                              <input
+                                type="text"
+                                value={cmsData.mascotSection.heading}
+                                onChange={(e) => {
+                                  onUpdateCMS({
+                                    ...cmsData,
+                                    mascotSection: { ...cmsData.mascotSection, heading: e.target.value }
+                                  });
+                                }}
+                                className="w-full bg-luxury-black border border-gold-500/15 px-3 py-2 text-xs text-white focus:outline-none font-display font-medium"
+                              />
+                            </div>
+
+                            <div className="space-y-1">
+                              <label className="text-[10px] font-mono tracking-wider text-gold-400 uppercase">Banner Description</label>
+                              <textarea
+                                rows={3}
+                                value={cmsData.mascotSection.description}
+                                onChange={(e) => {
+                                  onUpdateCMS({
+                                    ...cmsData,
+                                    mascotSection: { ...cmsData.mascotSection, description: e.target.value }
+                                  });
+                                }}
+                                className="w-full bg-luxury-black border border-gold-500/15 p-3 text-xs text-white focus:outline-none leading-relaxed"
+                              />
+                            </div>
+
+                            <div className="space-y-1">
+                              <label className="text-[10px] font-mono tracking-wider text-gold-400 uppercase">Banner Capsule Tags (Comma separated)</label>
+                              <input
+                                type="text"
+                                value={cmsData.mascotSection.tags.join(', ')}
+                                onChange={(e) => {
+                                  const parsedTags = e.target.value.split(',').map(t => t.trim()).filter(Boolean);
+                                  onUpdateCMS({
+                                    ...cmsData,
+                                    mascotSection: { ...cmsData.mascotSection, tags: parsedTags }
+                                  });
+                                }}
+                                className="w-full bg-luxury-black border border-gold-500/15 px-3 py-2 text-xs text-white focus:outline-none font-mono"
+                                placeholder="Gorilla, Teddy Bear, Dinosaur..."
+                              />
+                            </div>
+
+                            <div className="space-y-1">
+                              <ImageUploader
+                                label="Mascots Group Picture"
+                                value={cmsData.mascotSection.imageUrl}
+                                onChange={(newUrl) => {
+                                  onUpdateCMS({
+                                    ...cmsData,
+                                    mascotSection: { ...cmsData.mascotSection, imageUrl: newUrl }
+                                  });
+                                }}
+                                idPrefix="mascot-banner"
+                              />
+                            </div>
+                          </div>
+                        )}
+
+                      </div>
+                    </motion.div>
+                  )}
+
+                  {/* TAB 6: PREMIUM PRODUCTS INVENTORY & CREATOR */}
+                  {activeTab === 'products' && (
+                    <motion.div
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0, y: -10 }}
+                      className="space-y-8 text-left"
+                    >
+                      <div>
+                        <h3 className="font-display text-base font-semibold tracking-wider text-white uppercase flex items-center gap-2">
+                          <Briefcase size={16} className="text-gold-400" /> MASCOT & DOLLS PRODUCT MANAGER
+                        </h3>
+                        <p className="text-xs text-gray-400 font-sans font-light mt-0.5">
+                          Add, update, and manage your inventory of custom mascot costumes, pneumatic inflatables, and doll characters. Previews and edits go live instantly.
+                        </p>
+                      </div>
+
+                      <div className="grid grid-cols-1 xl:grid-cols-12 gap-8 items-start">
+                        
+                        {/* Left Side: Creation / Edit Form */}
+                        <div className="xl:col-span-5 bg-luxury-gray border border-gold-500/10 p-6 rounded-md relative">
+                          <div className="absolute top-0 left-0 w-4 h-4 border-t border-l border-gold-400/30" />
+                          <h4 className="text-xs font-mono text-gold-300 uppercase tracking-widest border-b border-gold-500/10 pb-3 mb-5 flex items-center justify-between">
+                            <span>{editingProductId ? 'Edit Costume Details' : 'Register New Costume'}</span>
+                            {editingProductId && (
+                              <button
+                                onClick={() => {
+                                  setEditingProductId(null);
+                                  setProdName('');
+                                  setProdCategory('Mascot Costume');
+                                  setProdDescription('');
+                                  setProdImageUrl('');
+                                  setProdTags('');
+                                }}
+                                className="text-[9px] text-rose-400 font-mono hover:underline uppercase cursor-pointer"
+                              >
+                                Cancel Edit
+                              </button>
+                            )}
+                          </h4>
+
+                          <form onSubmit={handleSaveProduct} className="space-y-4">
+                            <div className="space-y-1">
+                              <label className="text-[10px] font-mono tracking-wider text-gold-400 uppercase">Product Name</label>
+                              <input
+                                type="text"
+                                required
+                                value={prodName}
+                                onChange={(e) => setProdName(e.target.value)}
+                                placeholder="e.g. Royal Golden Teddy Bear"
+                                className="w-full bg-luxury-black border border-gold-500/15 px-3 py-2 text-xs text-white focus:border-gold-400 focus:outline-none"
+                              />
+                            </div>
+
+                            <div className="grid grid-cols-2 gap-4">
+                              <div className="space-y-1">
+                                <label className="text-[10px] font-mono tracking-wider text-gold-400 uppercase">Category</label>
+                                <select
+                                  value={prodCategory}
+                                  onChange={(e) => setProdCategory(e.target.value)}
+                                  className="w-full bg-luxury-black border border-gold-500/15 px-3 py-2 text-xs text-gray-300 focus:border-gold-400 focus:outline-none cursor-pointer"
+                                >
+                                  <option value="Mascot Costume">Mascot Costume</option>
+                                  <option value="Inflatable Character">Inflatable Character</option>
+                                  <option value="Puppet Doll">Puppet Doll</option>
+                                  <option value="Welcome Entry Character">Welcome Entry</option>
+                                  <option value="Other Premium Item">Other</option>
+                                </select>
+                              </div>
+
+                              <div className="space-y-1">
+                                <label className="text-[10px] font-mono tracking-wider text-gold-400 uppercase">Status Tags (Comma split)</label>
+                                <input
+                                  type="text"
+                                  value={prodTags}
+                                  onChange={(e) => setProdTags(e.target.value)}
+                                  placeholder="Rental, Sale, Popular"
+                                  className="w-full bg-luxury-black border border-gold-500/15 px-3 py-2 text-xs text-white focus:border-gold-400 focus:outline-none font-mono"
+                                />
+                              </div>
+                            </div>
+
+                            <div className="space-y-1">
+                              <label className="text-[10px] font-mono tracking-wider text-gold-400 uppercase">Costume Description</label>
+                              <textarea
+                                rows={3}
+                                required
+                                value={prodDescription}
+                                onChange={(e) => setProdDescription(e.target.value)}
+                                placeholder="Provide dimensions, materials, and suitability notes (e.g. ideal for weddings)..."
+                                className="w-full bg-luxury-black border border-gold-500/15 p-3 text-xs text-white focus:border-gold-400 focus:outline-none"
+                              />
+                            </div>
+
+                            <div className="space-y-1">
+                              <ImageUploader
+                                label="Costume Reference Image"
+                                value={prodImageUrl}
+                                onChange={(newUrl) => setProdImageUrl(newUrl)}
+                                idPrefix="product-image"
+                              />
+                            </div>
+
+                            <button
+                              type="submit"
+                              className="w-full gold-shimmer-btn py-3 text-luxury-black font-semibold text-xs tracking-widest uppercase focus:outline-none cursor-pointer flex items-center justify-center gap-2"
+                            >
+                              {editingProductId ? <Save size={14} /> : <Plus size={14} />}
+                              <span>{editingProductId ? 'UPDATE INVENTORY' : 'ADD TO GALLERY'}</span>
+                            </button>
+                          </form>
+                        </div>
+
+                        {/* Right Side: Inventory Table */}
+                        <div className="xl:col-span-7 bg-luxury-gray border border-gold-500/10 p-6 rounded-md relative flex flex-col">
+                          <div className="absolute top-0 left-0 w-4 h-4 border-t border-l border-gold-400/30" />
+                          
+                          {/* Table Header Controls */}
+                          <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-5 pb-4 border-b border-gold-500/10">
+                            <h4 className="text-xs font-mono text-gold-300 uppercase tracking-widest">
+                              Inventory List ({(cmsData.mascotSection?.products || []).length})
+                            </h4>
+
+                            <div className="relative w-full md:w-64">
+                              <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500" size={12} />
+                              <input
+                                type="text"
+                                placeholder="Filter costumes..."
+                                value={productSearch}
+                                onChange={(e) => setProductSearch(e.target.value)}
+                                className="w-full bg-luxury-black border border-gold-500/15 rounded-sm py-1.5 pl-8 pr-3 text-[10px] font-sans text-white focus:outline-none focus:border-gold-400/40"
+                              />
+                            </div>
+                          </div>
+
+                          {/* Inventory Table Container */}
+                          <div className="overflow-x-auto">
+                            <table className="w-full text-left border-collapse">
+                              <thead>
+                                <tr className="border-b border-gold-500/10 text-[9px] font-mono text-gold-400/70 uppercase tracking-wider">
+                                  <th className="pb-3 pl-2">Costume</th>
+                                  <th className="pb-3">Category</th>
+                                  <th className="pb-3">Tags</th>
+                                  <th className="pb-3 text-right pr-2">Actions</th>
+                                </tr>
+                              </thead>
+                              <tbody className="divide-y divide-gold-500/5 text-xs">
+                                {((cmsData.mascotSection?.products || []).filter(p => 
+                                  p.name.toLowerCase().includes(productSearch.toLowerCase()) ||
+                                  p.category.toLowerCase().includes(productSearch.toLowerCase())
+                                )).map((prod) => (
+                                  <tr key={prod.id} className="hover:bg-white/5 transition-colors group">
+                                    <td className="py-3 pl-2 flex items-center gap-3">
+                                      <div className="w-10 h-10 rounded border border-gold-500/10 bg-black overflow-hidden flex-shrink-0">
+                                        <img src={prod.imageUrl} alt={prod.name} className="w-full h-full object-cover" />
+                                      </div>
+                                      <div>
+                                        <span className="font-semibold text-white block leading-tight">{prod.name}</span>
+                                        <span className="text-[10px] text-gray-500 font-sans line-clamp-1">{prod.description}</span>
+                                      </div>
+                                    </td>
+                                    <td className="py-3">
+                                      <span className="text-[10px] font-mono bg-gold-400/5 border border-gold-400/10 px-2 py-0.5 rounded text-gold-300">
+                                        {prod.category}
+                                      </span>
+                                    </td>
+                                    <td className="py-3">
+                                      <div className="flex flex-wrap gap-1 max-w-[150px]">
+                                        {(prod.tags || []).map((t, idx) => (
+                                          <span key={idx} className="text-[8px] font-mono bg-luxury-black px-1.5 py-0.5 rounded text-gray-400">
+                                            {t}
+                                          </span>
+                                        ))}
+                                      </div>
+                                    </td>
+                                    <td className="py-3 text-right pr-2">
+                                      <div className="flex items-center justify-end gap-1.5 opacity-80 group-hover:opacity-100 transition-opacity">
+                                        <button
+                                          onClick={() => handleEditProductClick(prod)}
+                                          className="p-1 hover:text-gold-300 text-gray-400 hover:bg-gold-500/5 rounded cursor-pointer"
+                                          title="Edit details"
+                                        >
+                                          <Edit3 size={13} />
+                                        </button>
+
+                                        {productDeleteConfirmId === prod.id ? (
+                                          <div className="flex items-center gap-1 bg-rose-950/40 border border-rose-500/30 rounded px-1.5 py-0.5">
+                                            <button
+                                              onClick={() => handleDeleteProduct(prod.id)}
+                                              className="text-[9px] font-mono text-rose-400 hover:text-rose-300 font-bold uppercase cursor-pointer"
+                                            >
+                                              Confirm
+                                            </button>
+                                            <span className="text-gray-600">|</span>
+                                            <button
+                                              onClick={() => setProductDeleteConfirmId(null)}
+                                              className="text-[9px] font-mono text-gray-400 hover:text-white cursor-pointer"
+                                            >
+                                              No
+                                            </button>
+                                          </div>
+                                        ) : (
+                                          <button
+                                            onClick={() => setProductDeleteConfirmId(prod.id)}
+                                            className="p-1 hover:text-rose-400 text-gray-400 hover:bg-rose-500/5 rounded cursor-pointer"
+                                            title="Delete costume"
+                                          >
+                                            <Trash2 size={13} />
+                                          </button>
+                                        )}
+                                      </div>
+                                    </td>
+                                  </tr>
+                                ))}
+                                {((cmsData.mascotSection?.products || []).filter(p => 
+                                  p.name.toLowerCase().includes(productSearch.toLowerCase()) ||
+                                  p.category.toLowerCase().includes(productSearch.toLowerCase())
+                                )).length === 0 && (
+                                  <tr>
+                                    <td colSpan={4} className="py-6 text-center text-gray-500 font-sans">
+                                      No costumes match your search query.
+                                    </td>
+                                  </tr>
+                                )}
+                              </tbody>
+                            </table>
+                          </div>
+                        </div>
+
+                      </div>
+                    </motion.div>
+                  )}
+
+                  {/* TAB 7: SUPABASE SYNCHRONIZATION & SQL SCHEMA */}
+                  {activeTab === 'database' && (
+                    <motion.div
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0, y: -10 }}
+                      className="space-y-8 text-left"
+                    >
+                      <div>
+                        <h3 className="font-display text-base font-semibold tracking-wider text-white uppercase flex items-center gap-2">
+                          <Database size={16} className="text-gold-400" /> SUPABASE SYNCHRONIZATION CENTRE
+                        </h3>
+                        <p className="text-xs text-gray-400 font-sans font-light mt-0.5">
+                          Monitor connection status, link your persistent PostgreSQL cloud database, and copy SQL instructions to initialize schema.
+                        </p>
+                      </div>
+
+                      <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+                        
+                        {/* Connection Status Panel */}
+                        <div className="lg:col-span-5 space-y-6">
+                          <div className="bg-luxury-gray border border-gold-500/10 p-6 rounded-md relative">
+                            <div className="absolute top-0 left-0 w-4 h-4 border-t border-l border-gold-400/30" />
+                            <h4 className="text-xs font-mono text-gold-300 uppercase tracking-widest border-b border-gold-500/10 pb-3 mb-4 flex items-center gap-2">
+                              <span>Connection Health</span>
+                            </h4>
+
+                            <div className="space-y-4">
+                              <div className="flex items-center justify-between p-3 bg-luxury-black border border-gold-500/5 rounded">
+                                <div className="flex items-center gap-3">
+                                  <span className={`w-3 h-3 rounded-full ${
+                                    dbStatus === 'connected' ? 'bg-emerald-500 shadow-[0_0_10px_rgba(16,185,129,0.4)]' :
+                                    dbStatus === 'setup_required' ? 'bg-amber-500 shadow-[0_0_10px_rgba(245,158,11,0.4)]' :
+                                    'bg-rose-500 shadow-[0_0_10px_rgba(239,68,68,0.4)]'
+                                  }`} />
+                                  <div>
+                                    <span className="text-xs font-semibold text-white block uppercase font-mono tracking-wider">
+                                      {dbStatus === 'connected' ? 'Connected' :
+                                       dbStatus === 'setup_required' ? 'Tables Setup Required' :
+                                       'Connecting / Error'}
+                                    </span>
+                                    <span className="text-[10px] text-gray-400">
+                                      {dbStatus === 'connected' ? 'Data syncing in real-time with Supabase' :
+                                       dbStatus === 'setup_required' ? 'Connected, but tables need to be created' :
+                                       'Checking connection or authentication credentials'}
+                                    </span>
+                                  </div>
+                                </div>
+                              </div>
+
+                              <div className="space-y-2 text-xs">
+                                <div className="flex justify-between py-1 border-b border-gold-500/5">
+                                  <span className="text-gray-500">Service Provider:</span>
+                                  <span className="text-white font-mono font-medium">Supabase Cloud PostgreSQL</span>
+                                </div>
+                                <div className="flex justify-between py-1 border-b border-gold-500/5">
+                                  <span className="text-gray-500">Active URL:</span>
+                                  <span className="text-gold-300 font-mono text-[10px]">https://pontvvtvxmldaqkwwuxn.supabase.co</span>
+                                </div>
+                                <div className="flex justify-between py-1 border-b border-gold-500/5">
+                                  <span className="text-gray-500">Security Mode:</span>
+                                  <span className="text-white">Row Level Security (RLS) Active</span>
+                                </div>
+                              </div>
+
+                              <div className="p-3 bg-gold-500/5 border border-gold-500/10 rounded text-[11px] leading-relaxed text-gray-400">
+                                <span className="font-semibold text-gold-300 block mb-1">💡 Offline Resilience / Fallback State:</span>
+                                Siddharth Vibe incorporates a smart local storage sync strategy. If your cloud tables are not active, your booking records and web content edits are safely persisted in the browser cache. Once tables are set up, all operations seamlessly proxy to Supabase!
+                              </div>
+                            </div>
+                          </div>
+
+                          <div className="bg-luxury-gray border border-gold-500/10 p-6 rounded-md relative">
+                            <div className="absolute top-0 left-0 w-4 h-4 border-t border-l border-gold-400/30" />
+                            <h4 className="text-xs font-mono text-gold-300 uppercase tracking-widest border-b border-gold-500/10 pb-3 mb-3">
+                              How to Apply Connection
+                            </h4>
+                            <ol className="list-decimal list-inside space-y-2 text-xs text-gray-300 leading-relaxed font-sans">
+                              <li>Open your <span className="text-gold-400 font-semibold">Supabase Dashboard</span>.</li>
+                              <li>Go to the <span className="text-gold-400">SQL Editor</span> tab from the left navigation drawer.</li>
+                              <li>Click <span className="text-gold-400">New Query</span>.</li>
+                              <li>Copy the SQL script provided on the right pane.</li>
+                              <li>Paste the script into the query box and click <span className="text-emerald-400 font-bold">RUN</span>.</li>
+                              <li>Refresh this page. Your connection badge will turn green!</li>
+                            </ol>
+                          </div>
+                        </div>
+
+                        {/* SQL Code Copy Block */}
+                        <div className="lg:col-span-7 bg-luxury-gray border border-gold-500/10 p-6 rounded-md relative flex flex-col">
+                          <div className="absolute top-0 left-0 w-4 h-4 border-t border-l border-gold-400/30" />
+                          
+                          <div className="flex justify-between items-center pb-3 mb-4 border-b border-gold-500/10">
+                            <h4 className="text-xs font-mono text-gold-300 uppercase tracking-widest flex items-center gap-2">
+                              <FileText size={14} /> SQL SCHEMA SCRIPT
+                            </h4>
+
+                            <button
+                              onClick={() => {
+                                navigator.clipboard.writeText(SUPABASE_SQL_SCHEMA);
+                                setSqlCopied(true);
+                                setTimeout(() => setSqlCopied(false), 3000);
+                              }}
+                              className="px-3 py-1 bg-gold-500 text-luxury-black font-mono font-bold text-[10px] uppercase tracking-wider rounded cursor-pointer hover:bg-gold-400 transition-colors flex items-center gap-1.5"
+                            >
+                              {sqlCopied ? (
+                                <span className="text-emerald-950 font-bold">COPIED TO CLIPBOARD!</span>
+                              ) : (
+                                <>
+                                  <Save size={10} />
+                                  <span>COPY SQL CODE</span>
+                                </>
+                              )}
+                            </button>
+                          </div>
+
+                          <div className="bg-luxury-black rounded border border-gold-500/10 p-4 overflow-x-auto max-h-[380px]">
+                            <pre className="text-[10px] font-mono text-gray-300 leading-relaxed whitespace-pre select-all">
+                              {SUPABASE_SQL_SCHEMA}
+                            </pre>
+                          </div>
+
+                          <div className="mt-4 text-[10px] text-gray-500 text-right italic">
+                            Double click code or use button above to copy to clipboard.
+                          </div>
+                        </div>
 
                       </div>
                     </motion.div>

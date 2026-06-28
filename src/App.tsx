@@ -11,8 +11,11 @@ import Footer from './components/Footer';
 import BookingModal from './components/BookingModal';
 import AdminPanel from './components/AdminPanel';
 import EntranceLoader from './components/EntranceLoader';
+import MascotSection from './components/MascotSection';
+import ProductsPage from './components/ProductsPage';
 import { ConsultationRequest } from './types';
 import { loadCMSData, saveCMSData, CMSState } from './cmsData';
+import { checkDBStatus, loadBookingsFromDB, upsertBookingToDB, deleteBookingFromDB, loadCMSFromDB, saveCMSDataToDB, DBStatus } from './supabaseSync';
 
 const SEED_BOOKINGS: ConsultationRequest[] = [
   {
@@ -90,6 +93,7 @@ export default function App() {
     return !hasSeenIntro;
   });
   const [activeSection, setActiveSection] = useState('home');
+  const [currentPage, setCurrentPage] = useState<'home' | 'products'>('home');
   const [selectedServiceId, setSelectedServiceId] = useState('');
   const [activeBooking, setActiveBooking] = useState<ConsultationRequest | null>(null);
   const [bookings, setBookings] = useState<ConsultationRequest[]>([]);
@@ -97,19 +101,57 @@ export default function App() {
   const [cmsData, setCmsData] = useState<CMSState>(loadCMSData());
   const [selectedPortfolioCategory, setSelectedPortfolioCategory] = useState<string>('All');
 
-  // Initialize and load bookings
+  const [dbStatus, setDbStatus] = useState<DBStatus>('connecting');
+
+  // Initialize and load bookings & CMS from Supabase
   useEffect(() => {
-    const saved = localStorage.getItem('siddharth_vibe_bookings');
-    if (saved) {
-      try {
-        setBookings(JSON.parse(saved));
-      } catch (e) {
-        setBookings(SEED_BOOKINGS);
+    async function initSupabaseSync() {
+      const status = await checkDBStatus();
+      setDbStatus(status);
+
+      if (status === 'connected') {
+        // Load bookings
+        const dbBookings = await loadBookingsFromDB();
+        if (dbBookings && dbBookings.length > 0) {
+          setBookings(dbBookings);
+          localStorage.setItem('siddharth_vibe_bookings', JSON.stringify(dbBookings));
+        } else {
+          // If DB is connected but empty, seed it!
+          const localBookings = localStorage.getItem('siddharth_vibe_bookings');
+          const parsed = localBookings ? JSON.parse(localBookings) : SEED_BOOKINGS;
+          setBookings(parsed);
+          for (const b of parsed) {
+            await upsertBookingToDB(b);
+          }
+        }
+
+        // Load CMS
+        const dbCMS = await loadCMSFromDB();
+        if (dbCMS) {
+          setCmsData(dbCMS);
+          saveCMSData(dbCMS);
+        } else {
+          // If DB is connected but has no CMS row, seed it!
+          const currentCMS = loadCMSData();
+          await saveCMSDataToDB(currentCMS);
+        }
+      } else {
+        // Fallback to local storage loading
+        const saved = localStorage.getItem('siddharth_vibe_bookings');
+        if (saved) {
+          try {
+            setBookings(JSON.parse(saved));
+          } catch (e) {
+            setBookings(SEED_BOOKINGS);
+          }
+        } else {
+          setBookings(SEED_BOOKINGS);
+          localStorage.setItem('siddharth_vibe_bookings', JSON.stringify(SEED_BOOKINGS));
+        }
       }
-    } else {
-      setBookings(SEED_BOOKINGS);
-      localStorage.setItem('siddharth_vibe_bookings', JSON.stringify(SEED_BOOKINGS));
     }
+
+    initSupabaseSync();
   }, []);
 
   // Save bookings helper
@@ -119,27 +161,41 @@ export default function App() {
   };
 
   // CRUD handlers
-  const handleUpdateStatus = (id: string, status: ConsultationRequest['status']) => {
+  const handleUpdateStatus = async (id: string, status: ConsultationRequest['status']) => {
     const updated = bookings.map(b => b.id === id ? { ...b, status } : b);
     saveBookings(updated);
+    const target = updated.find(b => b.id === id);
+    if (target && dbStatus === 'connected') {
+      await upsertBookingToDB(target);
+    }
   };
 
-  const handleAddNotes = (id: string, notes: string) => {
+  const handleAddNotes = async (id: string, notes: string) => {
     const updated = bookings.map(b => b.id === id ? { ...b, adminNotes: notes } : b);
     saveBookings(updated);
+    const target = updated.find(b => b.id === id);
+    if (target && dbStatus === 'connected') {
+      await upsertBookingToDB(target);
+    }
   };
 
-  const handleDeleteBooking = (id: string) => {
+  const handleDeleteBooking = async (id: string) => {
     const updated = bookings.filter(b => b.id !== id);
     saveBookings(updated);
+    if (dbStatus === 'connected') {
+      await deleteBookingFromDB(id);
+    }
   };
 
-  const handleAddManualBooking = (newBooking: ConsultationRequest) => {
+  const handleAddManualBooking = async (newBooking: ConsultationRequest) => {
     const updated = [newBooking, ...bookings];
     saveBookings(updated);
+    if (dbStatus === 'connected') {
+      await upsertBookingToDB(newBooking);
+    }
   };
 
-  const handleBookingSubmitted = (req: ConsultationRequest) => {
+  const handleBookingSubmitted = async (req: ConsultationRequest) => {
     // Enrich request with fields for admin tracking
     const enriched: ConsultationRequest = {
       ...req,
@@ -151,13 +207,20 @@ export default function App() {
     const updated = [enriched, ...bookings];
     saveBookings(updated);
     setActiveBooking(enriched);
+    if (dbStatus === 'connected') {
+      await upsertBookingToDB(enriched);
+    }
   };
 
   // Update CMS callback helper
-  const handleUpdateCMS = (newData: CMSState) => {
+  const handleUpdateCMS = async (newData: CMSState) => {
     setCmsData(newData);
     saveCMSData(newData);
+    if (dbStatus === 'connected') {
+      await saveCMSDataToDB(newData);
+    }
   };
+
 
   // Smooth scroll navigation
   const handleNavigate = (sectionId: string) => {
@@ -296,51 +359,73 @@ export default function App() {
         <div className="absolute top-[55%] right-[5%] w-[500px] h-[500px] bg-gold-600/5 rounded-full blur-[150px]" />
       </div>
 
-      {/* Primary Fixed Navbar */}
-      <Header
-        activeSection={activeSection}
-        onNavigate={handleNavigate}
-        onBookConsultation={handleBookConsultation}
-        onOpenAdmin={() => setIsAdminOpen(true)}
-        cmsData={cmsData}
-      />
+      {currentPage === 'home' ? (
+        <>
+          {/* Primary Fixed Navbar */}
+          <Header
+            activeSection={activeSection}
+            onNavigate={handleNavigate}
+            onBookConsultation={handleBookConsultation}
+            onOpenAdmin={() => setIsAdminOpen(true)}
+            cmsData={cmsData}
+          />
 
-      {/* Main Layout Sections */}
-      <main className="relative z-10">
-        <Hero
-          onExploreServices={() => handleNavigate('services')}
-          onViewOurWork={() => handleNavigate('portfolio')}
-          cmsData={cmsData}
-        />
-        
-        <Services
-          onSelectServiceForCalculator={handleSelectServiceForCalculator}
-          cmsData={cmsData}
-          onViewServicePortfolio={(categoryName) => {
-            setSelectedPortfolioCategory(categoryName);
-            handleNavigate('portfolio');
-          }}
-        />
-        
-        <AboutUs cmsData={cmsData} />
-        
-        <Portfolio 
-          cmsData={cmsData} 
-          selectedCategory={selectedPortfolioCategory}
-          setSelectedCategory={setSelectedPortfolioCategory}
-        />
-        
-        <Consultation
-          selectedServiceId={selectedServiceId}
-          onBookingSuccess={handleBookingSubmitted}
-          cmsData={cmsData}
-        />
-        
-        <Testimonials cmsData={cmsData} />
-      </main>
+          {/* Main Layout Sections */}
+          <main className="relative z-10">
+            <Hero
+              onExploreServices={() => handleNavigate('services')}
+              onViewOurWork={() => handleNavigate('portfolio')}
+              cmsData={cmsData}
+            />
+            
+            <Services
+              onSelectServiceForCalculator={handleSelectServiceForCalculator}
+              cmsData={cmsData}
+              onViewServicePortfolio={(categoryName) => {
+                setSelectedPortfolioCategory(categoryName);
+                handleNavigate('portfolio');
+              }}
+            />
+            
+            <AboutUs cmsData={cmsData} />
+            
+            <Portfolio 
+              cmsData={cmsData} 
+              selectedCategory={selectedPortfolioCategory}
+              setSelectedCategory={setSelectedPortfolioCategory}
+            />
 
-      {/* Grand Footer */}
-      <Footer onNavigate={handleNavigate} cmsData={cmsData} />
+            <MascotSection 
+              cmsData={cmsData} 
+              onViewProducts={() => {
+                setCurrentPage('products');
+                window.scrollTo({ top: 0, behavior: 'instant' });
+              }} 
+            />
+            
+            <Consultation
+              selectedServiceId={selectedServiceId}
+              onBookingSuccess={handleBookingSubmitted}
+              cmsData={cmsData}
+            />
+            
+            <Testimonials cmsData={cmsData} />
+          </main>
+
+          {/* Grand Footer */}
+          <Footer onNavigate={handleNavigate} cmsData={cmsData} />
+        </>
+      ) : (
+        <AnimatePresence mode="wait">
+          <ProductsPage 
+            cmsData={cmsData} 
+            onBack={() => {
+              setCurrentPage('home');
+              window.scrollTo({ top: 0, behavior: 'instant' });
+            }} 
+          />
+        </AnimatePresence>
+      )}
 
       {/* Consultation Success Modal Popups */}
       <BookingModal
@@ -359,6 +444,7 @@ export default function App() {
         onAddManualBooking={handleAddManualBooking}
         cmsData={cmsData}
         onUpdateCMS={handleUpdateCMS}
+        dbStatus={dbStatus}
         onReplayIntro={() => {
           setIsIntroActive(true);
           setIsAdminOpen(false);
