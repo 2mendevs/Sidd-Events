@@ -9,7 +9,6 @@ import { motion, AnimatePresence } from 'motion/react';
 import { ConsultationRequest } from '../types';
 import { CMSState, ServiceCard, GalleryItem } from '../cmsData';
 import { DBStatus } from '../supabaseSync';
-import { SUPABASE_SQL_SCHEMA, SUPABASE_URL } from '../supabaseClient';
 import Logo from './Logo';
 
 interface AdminPanelProps {
@@ -304,7 +303,6 @@ export default function AdminPanel({
   const [galleryDeleteConfirmId, setGalleryDeleteConfirmId] = useState<string | null>(null);
   const [testimonialDeleteConfirmId, setTestimonialDeleteConfirmId] = useState<string | null>(null);
   const [resetConfirmActive, setResetConfirmActive] = useState(false);
-  const [sqlCopied, setSqlCopied] = useState(false);
 
   // Product state
   const [productSearch, setProductSearch] = useState('');
@@ -473,7 +471,7 @@ export default function AdminPanel({
         animate={{ x: 0 }}
         exit={{ x: '100%' }}
         transition={{ type: 'spring', damping: 25, stiffness: 200 }}
-        className={`w-full ${isAuthenticated ? 'max-w-6xl' : 'max-w-md md:max-w-lg'} h-screen bg-luxury-black border-l border-gold-500/10 flex flex-col relative transition-all duration-500 ease-in-out`}
+        className={`w-full ${isAuthenticated ? 'max-w-6xl' : 'max-w-md md:max-w-lg'} h-screen bg-luxury-black border-l border-gold-500/10 flex flex-col relative transition-[max-width] duration-300 ease-in-out`}
       >
         {/* Header bar */}
         <div className="border-b border-gold-500/10 py-5 px-6 md:px-8 flex items-center justify-between bg-luxury-gray">
@@ -3182,133 +3180,88 @@ export default function AdminPanel({
                     </motion.div>
                   )}
 
-                  {/* TAB 7: SUPABASE SYNCHRONIZATION & SQL SCHEMA */}
+                  {/* TAB 7: SUPABASE SYNCHRONIZATION */}
                   {activeTab === 'database' && (
                     <motion.div
                       initial={{ opacity: 0, y: 10 }}
                       animate={{ opacity: 1, y: 0 }}
                       exit={{ opacity: 0, y: -10 }}
-                      className="space-y-8 text-left"
+                      className="space-y-6 text-left max-w-xl mx-auto"
                     >
                       <div>
                         <h3 className="font-display text-base font-semibold tracking-wider text-white uppercase flex items-center gap-2">
-                          <Database size={16} className="text-gold-400" /> SUPABASE SYNCHRONIZATION CENTRE
+                          <Database size={16} className="text-gold-400" /> SUPABASE SYNCHRONIZATION
                         </h3>
                         <p className="text-xs text-gray-400 font-sans font-light mt-0.5">
-                          Monitor connection status, link your persistent PostgreSQL cloud database, and copy SQL instructions to initialize schema.
+                          Monitor connection status with the persistent cloud database.
                         </p>
                       </div>
 
-                      <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+                      <div className="bg-luxury-gray border border-gold-500/10 p-6 md:p-8 rounded-md relative shadow-xl">
+                        <div className="absolute top-0 left-0 w-4 h-4 border-t border-l border-gold-400/30" />
                         
-                        {/* Connection Status Panel */}
-                        <div className="lg:col-span-5 space-y-6">
-                          <div className="bg-luxury-gray border border-gold-500/10 p-6 rounded-md relative">
-                            <div className="absolute top-0 left-0 w-4 h-4 border-t border-l border-gold-400/30" />
-                            <h4 className="text-xs font-mono text-gold-300 uppercase tracking-widest border-b border-gold-500/10 pb-3 mb-4 flex items-center gap-2">
-                              <span>Connection Health</span>
-                            </h4>
-
-                            <div className="space-y-4">
-                              <div className="flex items-center justify-between p-3 bg-luxury-black border border-gold-500/5 rounded">
-                                <div className="flex items-center gap-3">
-                                  <span className={`w-3 h-3 rounded-full ${
-                                    dbStatus === 'connected' ? 'bg-emerald-500 shadow-[0_0_10px_rgba(16,185,129,0.4)]' :
-                                    dbStatus === 'setup_required' ? 'bg-amber-500 shadow-[0_0_10px_rgba(245,158,11,0.4)]' :
-                                    'bg-rose-500 shadow-[0_0_10px_rgba(239,68,68,0.4)]'
-                                  }`} />
-                                  <div>
-                                    <span className="text-xs font-semibold text-white block uppercase font-mono tracking-wider">
-                                      {dbStatus === 'connected' ? 'Connected' :
-                                       dbStatus === 'setup_required' ? 'Tables Setup Required' :
-                                       'Connecting / Error'}
-                                    </span>
-                                    <span className="text-[10px] text-gray-400">
-                                      {dbStatus === 'connected' ? 'Data syncing in real-time with Supabase' :
-                                       dbStatus === 'setup_required' ? 'Connected, but tables need to be created' :
-                                       'Checking connection or authentication credentials'}
-                                    </span>
-                                  </div>
-                                </div>
-                              </div>
-
-                              <div className="space-y-2 text-xs">
-                                <div className="flex justify-between py-1 border-b border-gold-500/5">
-                                  <span className="text-gray-500">Service Provider:</span>
-                                  <span className="text-white font-mono font-medium">Supabase Cloud PostgreSQL</span>
-                                </div>
-                                <div className="flex justify-between py-1 border-b border-gold-500/5">
-                                  <span className="text-gray-500">Active URL:</span>
-                                  <span className="text-gold-300 font-mono text-[10px] break-all">{SUPABASE_URL}</span>
-                                </div>
-                                <div className="flex justify-between py-1 border-b border-gold-500/5">
-                                  <span className="text-gray-500">Security Mode:</span>
-                                  <span className="text-white">Row Level Security (RLS) Active</span>
-                                </div>
-                              </div>
-
-                              <div className="p-3 bg-gold-500/5 border border-gold-500/10 rounded text-[11px] leading-relaxed text-gray-400">
-                                <span className="font-semibold text-gold-300 block mb-1">💡 Offline Resilience / Fallback State:</span>
-                                Siddharth Vibe incorporates a smart local storage sync strategy. If your cloud tables are not active, your booking records and web content edits are safely persisted in the browser cache. Once tables are set up, all operations seamlessly proxy to Supabase!
-                              </div>
-                            </div>
+                        <div className="flex flex-col items-center justify-center text-center py-6">
+                          {/* Glowing Large Status Badge */}
+                          <div className={`w-16 h-16 rounded-full flex items-center justify-center mb-6 relative ${
+                            dbStatus === 'connected' ? 'bg-emerald-500/10 border border-emerald-500/30 text-emerald-400' :
+                            dbStatus === 'setup_required' ? 'bg-amber-500/10 border border-amber-500/30 text-amber-400' :
+                            'bg-rose-500/10 border border-rose-500/30 text-rose-400'
+                          }`}>
+                            <div className={`absolute inset-0 rounded-full animate-ping opacity-25 ${
+                              dbStatus === 'connected' ? 'bg-emerald-500' :
+                              dbStatus === 'setup_required' ? 'bg-amber-500' :
+                              'bg-rose-500'
+                            }`} style={{ animationDuration: '3s' }} />
+                            <Database size={28} />
                           </div>
 
-                          <div className="bg-luxury-gray border border-gold-500/10 p-6 rounded-md relative">
-                            <div className="absolute top-0 left-0 w-4 h-4 border-t border-l border-gold-400/30" />
-                            <h4 className="text-xs font-mono text-gold-300 uppercase tracking-widest border-b border-gold-500/10 pb-3 mb-3">
-                              How to Apply Connection
-                            </h4>
-                            <ol className="list-decimal list-inside space-y-2 text-xs text-gray-300 leading-relaxed font-sans">
-                              <li>Open your <span className="text-gold-400 font-semibold">Supabase Dashboard</span>.</li>
-                              <li>Go to the <span className="text-gold-400">SQL Editor</span> tab from the left navigation drawer.</li>
-                              <li>Click <span className="text-gold-400">New Query</span>.</li>
-                              <li>Copy the SQL script provided on the right pane.</li>
-                              <li>Paste the script into the query box and click <span className="text-emerald-400 font-bold">RUN</span>.</li>
-                              <li>Refresh this page. Your connection badge will turn green!</li>
-                            </ol>
+                          <h4 className="font-mono text-xs uppercase tracking-[0.2em] text-gold-400 mb-1">
+                            DATABASE STATUS
+                          </h4>
+
+                          <span className={`text-lg font-display font-semibold tracking-wider uppercase ${
+                            dbStatus === 'connected' ? 'text-emerald-400' :
+                            dbStatus === 'setup_required' ? 'text-amber-400' :
+                            'text-rose-400'
+                          }`}>
+                            {dbStatus === 'connected' ? 'CONNECTED & SECURED' :
+                             dbStatus === 'setup_required' ? 'TABLES SETUP REQUIRED' :
+                             'OFFLINE / DISCONNECTED'}
+                          </span>
+
+                          <p className="text-xs text-gray-300 max-w-sm font-sans font-light mt-3 leading-relaxed">
+                            {dbStatus === 'connected' ? 'Data is successfully synchronizing in real-time with your persistent cloud backend.' :
+                             dbStatus === 'setup_required' ? 'Database credentials are correct, but schema tables are missing or not fully created in Supabase.' :
+                             'The terminal is unable to establish contact with the cloud host. System operations are running in fallback mode.'}
+                          </p>
+                        </div>
+
+                        {/* Divider */}
+                        <div className="border-t border-gold-500/10 my-4" />
+
+                        {/* Status Details List */}
+                        <div className="space-y-3 text-xs">
+                          <div className="flex justify-between py-1 border-b border-gold-500/5">
+                            <span className="text-gray-500">Service Provider:</span>
+                            <span className="text-white font-mono font-medium">Supabase Cloud PostgreSQL</span>
+                          </div>
+                          <div className="flex justify-between py-1 border-b border-gold-500/5">
+                            <span className="text-gray-500">Sync Pipeline:</span>
+                            <span className="text-white font-mono font-medium">
+                              {dbStatus === 'connected' ? 'Active / Real-time' : 'Inactive'}
+                            </span>
+                          </div>
+                          <div className="flex justify-between py-1">
+                            <span className="text-gray-500">Security Access:</span>
+                            <span className="text-white">Row Level Security (RLS) enabled</span>
                           </div>
                         </div>
 
-                        {/* SQL Code Copy Block */}
-                        <div className="lg:col-span-7 bg-luxury-gray border border-gold-500/10 p-6 rounded-md relative flex flex-col">
-                          <div className="absolute top-0 left-0 w-4 h-4 border-t border-l border-gold-400/30" />
-                          
-                          <div className="flex justify-between items-center pb-3 mb-4 border-b border-gold-500/10">
-                            <h4 className="text-xs font-mono text-gold-300 uppercase tracking-widest flex items-center gap-2">
-                              <FileText size={14} /> SQL SCHEMA SCRIPT
-                            </h4>
-
-                            <button
-                              onClick={() => {
-                                navigator.clipboard.writeText(SUPABASE_SQL_SCHEMA);
-                                setSqlCopied(true);
-                                setTimeout(() => setSqlCopied(false), 3000);
-                              }}
-                              className="px-3 py-1 bg-gold-500 text-luxury-black font-mono font-bold text-[10px] uppercase tracking-wider rounded cursor-pointer hover:bg-gold-400 transition-colors flex items-center gap-1.5"
-                            >
-                              {sqlCopied ? (
-                                <span className="text-emerald-950 font-bold">COPIED TO CLIPBOARD!</span>
-                              ) : (
-                                <>
-                                  <Save size={10} />
-                                  <span>COPY SQL CODE</span>
-                                </>
-                              )}
-                            </button>
-                          </div>
-
-                          <div className="bg-luxury-black rounded border border-gold-500/10 p-4 overflow-x-auto max-h-[380px]">
-                            <pre className="text-[10px] font-mono text-gray-300 leading-relaxed whitespace-pre select-all">
-                              {SUPABASE_SQL_SCHEMA}
-                            </pre>
-                          </div>
-
-                          <div className="mt-4 text-[10px] text-gray-500 text-right italic">
-                            Double click code or use button above to copy to clipboard.
-                          </div>
+                        {/* Elegant Fallback Notice Box */}
+                        <div className="mt-6 p-4 bg-gold-500/5 border border-gold-500/10 rounded text-[11px] leading-relaxed text-gray-400">
+                          <span className="font-semibold text-gold-300 block mb-1">💡 Offline Resilience / Fallback State:</span>
+                          Siddharth Vibe incorporates an automated local cache strategy. If your cloud database is not connected, your booking registrations and content updates are safely persisted locally in your browser. Once connection is restored, synchronization will resume seamlessly!
                         </div>
-
                       </div>
                     </motion.div>
                   )}

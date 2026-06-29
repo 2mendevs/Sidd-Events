@@ -51,6 +51,8 @@ export default function Footer({ onNavigate, cmsData, onOpenAdmin }: FooterProps
         <div className="flex flex-col gap-5">
           <Logo 
             size="md" 
+            align="left"
+            className="[&_img]:h-12 sm:[&_img]:h-14 lg:[&_img]:h-16 [&_img]:max-h-20 [&_img]:object-contain"
             logoText={cmsData.navbar.logoText} 
             logoSubtext={cmsData.navbar.logoSubtext} 
             logoImage={cmsData.navbar.logoImage}

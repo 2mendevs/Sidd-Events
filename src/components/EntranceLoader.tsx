@@ -46,7 +46,7 @@ export default function EntranceLoader({ cmsData, onComplete }: EntranceLoaderPr
         scale: 1.01,
         transition: { duration: 0.65, ease: [0.25, 1, 0.5, 1] } 
       }}
-      className="fixed inset-0 z-[1000] w-full h-full bg-[#030303] flex items-center justify-center overflow-hidden select-none pointer-events-none transform-gpu"
+      className="fixed inset-0 z-[1000] w-full h-[100dvh] bg-[#030303] flex items-center justify-center overflow-hidden select-none pointer-events-auto transform-gpu"
     >
       {/* Royal ambient gold dust background effect */}
       <div className="absolute inset-0 bg-radial-gradient from-[rgba(197,142,55,0.03)] to-transparent opacity-60" />
@@ -76,12 +76,12 @@ export default function EntranceLoader({ cmsData, onComplete }: EntranceLoaderPr
         {phase === 'reveal-brand' && (
           <div className="relative flex flex-col items-center justify-center w-full transform-gpu">
             
-            {/* Elegant luxury framing borders (optimized responsiveness for both mobile & laptops) */}
+            {/* Elegant luxury framing borders (optimized responsiveness and perfectly centered with absolute coordinates) */}
             <motion.div
               initial={{ opacity: 0, scale: 0.94 }}
               animate={{ opacity: 0.12, scale: 1 }}
               transition={{ duration: 1.0, ease: [0.16, 1, 0.3, 1] }}
-              className="absolute border border-gold-400 rounded w-[260px] h-[130px] sm:w-[320px] sm:h-[150px] md:w-[360px] md:h-[170px]"
+              className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 border border-gold-400 rounded w-[260px] h-[135px] sm:w-[320px] sm:h-[150px] md:w-[360px] md:h-[170px] pointer-events-none"
             />
 
             <motion.div

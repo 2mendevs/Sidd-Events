@@ -273,6 +273,21 @@ export default function App() {
     };
   }, []);
 
+  // Lock scroll when entrance loader is playing to prevent mobile layout shifts
+  useEffect(() => {
+    if (isIntroActive) {
+      document.body.style.overflow = 'hidden';
+      document.documentElement.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = '';
+      document.documentElement.style.overflow = '';
+    }
+    return () => {
+      document.body.style.overflow = '';
+      document.documentElement.style.overflow = '';
+    };
+  }, [isIntroActive]);
+
   // Theme variable styles
   const isDarkMode = cmsData.globalSettings.isDarkMode;
   const primaryColor = cmsData.globalSettings.primaryColor;
@@ -284,7 +299,7 @@ export default function App() {
   const fontSansFamily = bodyFont === 'mono' ? '"JetBrains Mono", monospace' : bodyFont === 'serif' ? '"Cormorant Garamond", serif' : '"Inter", sans-serif';
 
   return (
-    <div className="relative min-h-screen bg-luxury-black text-gray-200 select-none antialiased">
+    <div className="relative min-h-screen w-full overflow-x-hidden bg-luxury-black text-gray-200 select-none antialiased">
       {/* Premium Entrance/Loader Animation */}
       <AnimatePresence mode="wait">
         {isIntroActive && (

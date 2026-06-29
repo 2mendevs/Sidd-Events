@@ -8,6 +8,7 @@ interface LogoProps {
   logoSubtext?: string;
   logoImage?: string;
   onLoad?: () => void;
+  align?: 'left' | 'center';
 }
 
 export default function Logo({ 
@@ -17,7 +18,8 @@ export default function Logo({
   logoText = "SIDDHARTH VIBE", 
   logoSubtext = "EVENTS", 
   logoImage,
-  onLoad
+  onLoad,
+  align = 'center'
 }: LogoProps) {
   const [imgLoaded, setImgLoaded] = React.useState(false);
   const [imgError, setImgError] = React.useState(false);
@@ -62,9 +64,11 @@ export default function Logo({
     }
   };
 
+  const alignmentClass = align === 'left' ? 'justify-start' : 'justify-center';
+
   if (logoImage && !imgError) {
     return (
-      <div className={`relative flex items-center justify-center select-none ${getScale()} ${className}`}>
+      <div className={`relative flex items-center ${alignmentClass} select-none ${getScale()} ${className}`}>
         {!imgLoaded && (
           <div className="absolute inset-0 flex items-center justify-center">
             {/* Subtle elegant spinner instead of dummy crest */}
@@ -90,7 +94,7 @@ export default function Logo({
   }
 
   return (
-    <div className={`flex items-center gap-3 select-none ${getScale()} ${className}`}>
+    <div className={`flex items-center ${alignmentClass} gap-3 select-none ${getScale()} ${className}`}>
       {/* No dummy fallback crest/logo shown here before logoImage is uploaded */}
 
       {showText && (
