@@ -10,6 +10,7 @@ import { ConsultationRequest } from '../types';
 import { CMSState, ServiceCard, GalleryItem } from '../cmsData';
 import { DBStatus } from '../supabaseSync';
 import { SUPABASE_SQL_SCHEMA, SUPABASE_URL } from '../supabaseClient';
+import Logo from './Logo';
 
 interface AdminPanelProps {
   isOpen: boolean;
@@ -472,7 +473,7 @@ export default function AdminPanel({
         animate={{ x: 0 }}
         exit={{ x: '100%' }}
         transition={{ type: 'spring', damping: 25, stiffness: 200 }}
-        className="w-full max-w-6xl h-screen bg-luxury-black border-l border-gold-500/10 flex flex-col relative"
+        className={`w-full ${isAuthenticated ? 'max-w-6xl' : 'max-w-md md:max-w-lg'} h-screen bg-luxury-black border-l border-gold-500/10 flex flex-col relative transition-all duration-500 ease-in-out`}
       >
         {/* Header bar */}
         <div className="border-b border-gold-500/10 py-5 px-6 md:px-8 flex items-center justify-between bg-luxury-gray">
@@ -500,7 +501,7 @@ export default function AdminPanel({
             
             <button
               onClick={onClose}
-              className="p-2 text-gray-400 hover:text-gold-400 focus:outline-none transition-colors border border-transparent hover:border-gold-500/20 rounded cursor-pointer"
+              className="p-2 text-gray-400 hover:text-gold-400 focus:outline-none transition-colors border border-transparent hover:border-gold-500/20 rounded cursor-pointer min-w-[40px] min-h-[40px] flex items-center justify-center"
             >
               <X size={18} />
             </button>
@@ -509,14 +510,27 @@ export default function AdminPanel({
 
         {/* Content body based on Authentication */}
         {!isAuthenticated ? (
-          <div className="flex-1 flex flex-col items-center justify-center p-6 text-center max-w-md mx-auto">
-            <div className="w-16 h-16 rounded-full border border-gold-500/20 bg-gold-500/5 flex items-center justify-center text-gold-400 mb-6 shadow-xl animate-pulse">
-              <Lock size={26} strokeWidth={1.5} />
-            </div>
-            <h3 className="font-display text-lg font-semibold tracking-wider text-white uppercase">
+          <div className="flex-1 flex flex-col items-center justify-center p-6 md:p-10 text-center max-w-sm md:max-w-md mx-auto w-full">
+            
+            {/* Custom Logo Integration in Login Panel if exists */}
+            {cmsData.navbar.logoImage ? (
+              <div className="mb-4">
+                <Logo 
+                  size="md" 
+                  showText={false}
+                  logoImage={cmsData.navbar.logoImage}
+                />
+              </div>
+            ) : (
+              <div className="w-14 h-14 rounded-full border border-gold-500/20 bg-gold-500/5 flex items-center justify-center text-gold-400 mb-5 shadow-xl animate-pulse">
+                <Lock size={22} strokeWidth={1.5} />
+              </div>
+            )}
+
+            <h3 className="font-display text-base md:text-lg font-semibold tracking-wider text-white uppercase">
               AUTHENTICATION REQUIRED
             </h3>
-            <p className="text-xs text-gray-400 leading-relaxed font-sans font-light mt-2 mb-6">
+            <p className="text-[11px] md:text-xs text-gray-400 leading-relaxed font-sans font-light mt-2 mb-6">
               This terminal provides access to live customer consultation logs, financial estimates, and scheduler agendas.
             </p>
 
@@ -525,13 +539,14 @@ export default function AdminPanel({
                 <label className="block text-[10px] font-mono tracking-wider text-gold-400 uppercase mb-1.5">Email Address</label>
                 <input
                   type="email"
+                  autoComplete="username email"
                   placeholder="Enter email address..."
                   value={email}
                   onChange={(e) => {
                     setEmail(e.target.value);
                     setError('');
                   }}
-                  className="w-full bg-luxury-gray/80 border border-gold-500/15 focus:border-gold-400 px-4 py-3 text-sm text-white font-mono rounded-none focus:outline-none shadow-inner"
+                  className="w-full bg-luxury-gray/80 border border-gold-500/15 focus:border-gold-400 focus:ring-2 focus:ring-gold-500/10 px-4 py-3 text-base md:text-sm text-white font-mono rounded-none focus:outline-none shadow-inner transition-all duration-200"
                   required
                   autoFocus
                 />
@@ -541,33 +556,34 @@ export default function AdminPanel({
                 <label className="block text-[10px] font-mono tracking-wider text-gold-400 uppercase mb-1.5">Password</label>
                 <input
                   type="password"
+                  autoComplete="current-password"
                   placeholder="Enter password..."
                   value={password}
                   onChange={(e) => {
                     setPassword(e.target.value);
                     setError('');
                   }}
-                  className="w-full bg-luxury-gray/80 border border-gold-500/15 focus:border-gold-400 px-4 py-3 text-sm text-white font-mono rounded-none focus:outline-none shadow-inner"
+                  className="w-full bg-luxury-gray/80 border border-gold-500/15 focus:border-gold-400 focus:ring-2 focus:ring-gold-500/10 px-4 py-3 text-base md:text-sm text-white font-mono rounded-none focus:outline-none shadow-inner transition-all duration-200"
                   required
                 />
               </div>
 
               {error && (
-                <p className="text-[10px] font-mono text-rose-400 tracking-wider uppercase bg-rose-500/10 border border-rose-500/15 py-1.5 text-center">
+                <p className="text-[10px] font-mono text-rose-400 tracking-wider uppercase bg-rose-500/10 border border-rose-500/15 py-2 text-center rounded-sm">
                   {error}
                 </p>
               )}
 
               <button
                 type="submit"
-                className="w-full gold-shimmer-btn py-3 mt-2 text-luxury-black font-semibold text-xs tracking-[0.2em] uppercase focus:outline-none cursor-pointer"
+                className="w-full gold-shimmer-btn py-3.5 mt-4 text-luxury-black font-semibold text-xs tracking-[0.2em] uppercase focus:outline-none cursor-pointer shadow-[0_4px_15px_rgba(197,142,55,0.15)] active:translate-y-[1px] transition-transform duration-100"
               >
                 UNLOCK TERMINAL
               </button>
             </form>
 
             <div className="mt-8 border-t border-gold-500/10 pt-4 w-full text-center">
-              <p className="text-[9px] font-mono text-gray-600 uppercase">
+              <p className="text-[9px] font-mono text-gray-600 uppercase tracking-widest">
                 Authorized Siddharth Vibe Personnel Only
               </p>
             </div>
