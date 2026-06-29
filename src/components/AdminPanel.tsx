@@ -587,10 +587,101 @@ export default function AdminPanel({
             </div>
           </div>
         ) : (
-          <div className="flex-1 flex overflow-hidden">
+          <div className="flex-1 flex flex-col lg:flex-row overflow-hidden">
             
-            {/* Sidebar Navigation Tabs */}
-            <div className="w-48 border-r border-gold-500/10 bg-luxury-gray flex flex-col justify-between py-6">
+            {/* Horizontal Navigation for Mobile & Tablet */}
+            <div className="lg:hidden flex overflow-x-auto whitespace-nowrap bg-luxury-gray/95 backdrop-blur-md border-b border-gold-500/10 px-4 py-1.5 gap-2 scrollbar-none select-none shrink-0">
+              <button
+                onClick={() => setActiveTab('dashboard')}
+                className={`inline-flex items-center gap-2 px-3 py-2.5 text-xs tracking-wider font-medium transition-colors cursor-pointer rounded-sm ${
+                  activeTab === 'dashboard' 
+                    ? 'bg-gold-500/10 text-gold-300 border-b-2 border-gold-400 font-semibold' 
+                    : 'text-gray-400 hover:text-white'
+                }`}
+              >
+                <TrendingUp size={13} className={activeTab === 'dashboard' ? 'text-gold-300' : 'text-gray-400'} />
+                <span>DASHBOARD</span>
+              </button>
+
+              <button
+                onClick={() => setActiveTab('bookings')}
+                className={`inline-flex items-center gap-2 px-3 py-2.5 text-xs tracking-wider font-medium transition-colors cursor-pointer rounded-sm ${
+                  activeTab === 'bookings' 
+                    ? 'bg-gold-500/10 text-gold-300 border-b-2 border-gold-400 font-semibold' 
+                    : 'text-gray-400 hover:text-white'
+                }`}
+              >
+                <Layers size={13} className={activeTab === 'bookings' ? 'text-gold-300' : 'text-gray-400'} />
+                <span>BOOKINGS ({bookings.length})</span>
+              </button>
+
+              <button
+                onClick={() => setActiveTab('calendar')}
+                className={`inline-flex items-center gap-2 px-3 py-2.5 text-xs tracking-wider font-medium transition-colors cursor-pointer rounded-sm ${
+                  activeTab === 'calendar' 
+                    ? 'bg-gold-500/10 text-gold-300 border-b-2 border-gold-400 font-semibold' 
+                    : 'text-gray-400 hover:text-white'
+                }`}
+              >
+                <Calendar size={13} className={activeTab === 'calendar' ? 'text-gold-300' : 'text-gray-400'} />
+                <span>CALENDAR</span>
+              </button>
+
+              <button
+                onClick={() => setActiveTab('new-booking')}
+                className={`inline-flex items-center gap-2 px-3 py-2.5 text-xs tracking-wider font-medium transition-colors cursor-pointer rounded-sm ${
+                  activeTab === 'new-booking' 
+                    ? 'bg-gold-500/10 text-gold-300 border-b-2 border-gold-400 font-semibold' 
+                    : 'text-gray-400 hover:text-white'
+                }`}
+              >
+                <Plus size={13} className={activeTab === 'new-booking' ? 'text-gold-300' : 'text-gray-400'} />
+                <span>ADD INQUIRY</span>
+              </button>
+
+              <button
+                onClick={() => setActiveTab('cms')}
+                className={`inline-flex items-center gap-2 px-3 py-2.5 text-xs tracking-wider font-medium transition-colors cursor-pointer rounded-sm ${
+                  activeTab === 'cms' 
+                    ? 'bg-gold-500/10 text-gold-300 border-b-2 border-gold-400 font-semibold' 
+                    : 'text-gray-400 hover:text-white'
+                }`}
+              >
+                <Sliders size={13} className={activeTab === 'cms' ? 'text-gold-300' : 'text-gray-400'} />
+                <span>SITE EDITOR</span>
+              </button>
+
+              <button
+                onClick={() => setActiveTab('products')}
+                className={`inline-flex items-center gap-2 px-3 py-2.5 text-xs tracking-wider font-medium transition-colors cursor-pointer rounded-sm ${
+                  activeTab === 'products' 
+                    ? 'bg-gold-500/10 text-gold-300 border-b-2 border-gold-400 font-semibold' 
+                    : 'text-gray-400 hover:text-white'
+                }`}
+              >
+                <Briefcase size={13} className={activeTab === 'products' ? 'text-gold-300' : 'text-gray-400'} />
+                <span>PRODUCTS</span>
+              </button>
+
+              <button
+                onClick={() => setActiveTab('database')}
+                className={`inline-flex items-center gap-2.5 px-3 py-2.5 text-xs tracking-wider font-medium transition-colors cursor-pointer rounded-sm ${
+                  activeTab === 'database' 
+                    ? 'bg-gold-500/10 text-gold-300 border-b-2 border-gold-400 font-semibold' 
+                    : 'text-gray-400 hover:text-white'
+                }`}
+              >
+                <Database size={13} className={activeTab === 'database' ? 'text-gold-300' : 'text-gray-400'} />
+                <span>DATABASE</span>
+                <span className={`w-1.5 h-1.5 rounded-full ${
+                  dbStatus === 'connected' ? 'bg-emerald-500' :
+                  dbStatus === 'setup_required' ? 'bg-amber-500' : 'bg-rose-500 animate-pulse'
+                }`} />
+              </button>
+            </div>
+
+            {/* Sidebar Navigation Tabs (Desktop only) */}
+            <div className="hidden lg:flex w-48 border-r border-gold-500/10 bg-luxury-gray flex-col justify-between py-6">
               <div className="flex flex-col gap-1 px-3">
                 <button
                   onClick={() => setActiveTab('dashboard')}
