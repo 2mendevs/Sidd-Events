@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { Analytics } from '@vercel/analytics/react';
 import { AnimatePresence } from 'motion/react';
 import Header from './components/Header';
 import Hero from './components/Hero';
@@ -300,6 +301,7 @@ export default function App() {
 
   return (
     <div className="relative min-h-screen w-full overflow-x-hidden bg-luxury-black text-gray-200 select-none antialiased">
+      <Analytics />
       {/* Premium Entrance/Loader Animation */}
       <AnimatePresence mode="wait">
         {isIntroActive && (
