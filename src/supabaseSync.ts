@@ -85,7 +85,7 @@ export async function checkDBStatus(): Promise<DBStatus> {
 
     return 'connected';
   } catch (err) {
-    console.error('Supabase status check failed:', err);
+    console.warn('Supabase status check failed:', err);
     return 'error';
   }
 }
@@ -108,7 +108,7 @@ export async function loadBookingsFromDB(): Promise<ConsultationRequest[] | null
     }
     return [];
   } catch (err) {
-    console.error('Failed fetching bookings from Supabase:', err);
+    console.warn('Failed fetching bookings from Supabase:', err);
     return null;
   }
 }
@@ -152,13 +152,13 @@ export async function upsertBookingToDB(booking: ConsultationRequest): Promise<b
       }
 
       // If we couldn't resolve it or it's a different error, log and fail
-      console.error('Error upserting booking to Supabase:', error.message);
+      console.warn('Error upserting booking to Supabase:', error.message);
       return false;
     }
 
     return false;
   } catch (err) {
-    console.error('Failed upserting booking to Supabase:', err);
+    console.warn('Failed upserting booking to Supabase:', err);
     return false;
   }
 }
@@ -172,12 +172,12 @@ export async function deleteBookingFromDB(id: string): Promise<boolean> {
       .eq('id', id);
 
     if (error) {
-      console.error('Error deleting booking from Supabase:', error.message);
+      console.warn('Error deleting booking from Supabase:', error.message);
       return false;
     }
     return true;
   } catch (err) {
-    console.error('Failed deleting booking from Supabase:', err);
+    console.warn('Failed deleting booking from Supabase:', err);
     return false;
   }
 }
@@ -201,7 +201,7 @@ export async function loadCMSFromDB(): Promise<CMSState | null> {
     }
     return null;
   } catch (err) {
-    console.error('Failed loading CMS from Supabase:', err);
+    console.warn('Failed loading CMS from Supabase:', err);
     return null;
   }
 }
@@ -218,12 +218,12 @@ export async function saveCMSDataToDB(cmsData: CMSState): Promise<boolean> {
       });
 
     if (error) {
-      console.error('Error saving CMS data to Supabase:', error.message);
+      console.warn('Error saving CMS data to Supabase:', error.message);
       return false;
     }
     return true;
   } catch (err) {
-    console.error('Failed saving CMS data to Supabase:', err);
+    console.warn('Failed saving CMS data to Supabase:', err);
     return false;
   }
 }

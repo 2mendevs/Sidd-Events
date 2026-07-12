@@ -191,7 +191,11 @@ export default function App() {
     const updated = [newBooking, ...bookings];
     saveBookings(updated);
     if (dbStatus === 'connected') {
-      await upsertBookingToDB(newBooking);
+      const success = await upsertBookingToDB(newBooking);
+      if (!success) {
+        const freshStatus = await checkDBStatus();
+        setDbStatus(freshStatus);
+      }
     }
   };
 
@@ -208,7 +212,11 @@ export default function App() {
     saveBookings(updated);
     setActiveBooking(enriched);
     if (dbStatus === 'connected') {
-      await upsertBookingToDB(enriched);
+      const success = await upsertBookingToDB(enriched);
+      if (!success) {
+        const freshStatus = await checkDBStatus();
+        setDbStatus(freshStatus);
+      }
     }
   };
 
@@ -217,7 +225,11 @@ export default function App() {
     setCmsData(newData);
     saveCMSData(newData);
     if (dbStatus === 'connected') {
-      await saveCMSDataToDB(newData);
+      const success = await saveCMSDataToDB(newData);
+      if (!success) {
+        const freshStatus = await checkDBStatus();
+        setDbStatus(freshStatus);
+      }
     }
   };
 

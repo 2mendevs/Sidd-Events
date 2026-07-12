@@ -64,7 +64,27 @@ export default function Portfolio({ cmsData, selectedCategory, setSelectedCatego
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [lightboxItem, currentIndex, categoryItems]);
 
-  const defaultCategories = ['All', 'Weddings', 'Birthdays', 'Corporate Events', 'Catering'];
+  const categoryDisplayLabels: Record<string, string> = {
+    'All': 'All',
+    'Weddings': 'Weddings',
+    'Corporate Events': 'Corporate Events',
+    'Birthdays': 'Birthdays',
+    'Catering': 'Catering',
+    'TEMPLE': 'Temple / Processions',
+    'Mascots': 'Mascots & Costumes',
+    'Music & Dance': 'Music & Folk Dance'
+  };
+
+  const defaultCategories = [
+    'All',
+    'Weddings',
+    'Corporate Events',
+    'Birthdays',
+    'Catering',
+    'TEMPLE',
+    'Mascots',
+    'Music & Dance'
+  ];
   
   // Dynamically merge default categories, actual item categories, and any actively selected custom category/service name
   const categories = Array.from(new Set([
@@ -134,7 +154,7 @@ export default function Portfolio({ cmsData, selectedCategory, setSelectedCatego
         {/* Content Overlay */}
         <div className="p-5 bg-luxury-gray border-t border-gold-500/5 relative z-20 text-left">
           <span className="text-[9px] font-mono tracking-widest text-gold-400 uppercase">
-            {item.category}
+            {categoryDisplayLabels[item.category] || item.category}
           </span>
           <h3 className="font-display text-sm font-semibold text-white tracking-wider uppercase mt-1 group-hover/item:text-gold-300 transition-colors">
             {item.title}
@@ -186,7 +206,7 @@ export default function Portfolio({ cmsData, selectedCategory, setSelectedCatego
                   : 'bg-transparent text-gray-400 border-gold-500/10 hover:text-white hover:border-gold-500/30'
               }`}
             >
-              {category}
+              {categoryDisplayLabels[category] || category}
             </button>
           ))}
         </div>
@@ -312,7 +332,7 @@ export default function Portfolio({ cmsData, selectedCategory, setSelectedCatego
                 {/* Details list panel */}
                 <div className="flex flex-col gap-5 text-left justify-center">
                   <span className="text-[10px] font-mono tracking-widest text-gold-400 uppercase">
-                    {lightboxItem.category} GALLERY
+                    {(categoryDisplayLabels[lightboxItem.category] || lightboxItem.category)} GALLERY
                   </span>
                   
                   <h4 className="font-display text-2xl font-bold text-white tracking-widest uppercase">
