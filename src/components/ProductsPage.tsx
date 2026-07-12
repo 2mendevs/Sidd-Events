@@ -218,7 +218,7 @@ export default function ProductsPage({ cmsData, onBack }: ProductsPageProps) {
                   {/* Image Frame */}
                   <div className="relative aspect-square overflow-hidden bg-black p-1">
                     <img
-                      src={prod.imageUrl}
+                      src={prod.imageUrl || null}
                       alt={prod.name}
                       className="w-full h-full object-cover group-hover:scale-104 transition-transform duration-500"
                       referrerPolicy="no-referrer"

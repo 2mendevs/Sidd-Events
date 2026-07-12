@@ -15,6 +15,55 @@ export default function Portfolio({ cmsData, selectedCategory, setSelectedCatego
 
   const { heading, description, items, layout } = cmsData.gallery;
 
+  // Filter gallery items by the same category as the active lightbox item to allow navigation
+  const categoryItems = lightboxItem 
+    ? items.filter(item => (item.category || '').toLowerCase() === (lightboxItem.category || '').toLowerCase())
+    : [];
+
+  const currentIndex = lightboxItem 
+    ? categoryItems.findIndex(item => item.id === lightboxItem.id)
+    : -1;
+
+  const handlePrevImage = (e?: React.MouseEvent) => {
+    if (e) {
+      e.stopPropagation();
+      e.preventDefault();
+    }
+    if (categoryItems.length > 1 && currentIndex !== -1) {
+      const prevIndex = currentIndex > 0 ? currentIndex - 1 : categoryItems.length - 1;
+      setLightboxItem(categoryItems[prevIndex]);
+    }
+  };
+
+  const handleNextImage = (e?: React.MouseEvent) => {
+    if (e) {
+      e.stopPropagation();
+      e.preventDefault();
+    }
+    if (categoryItems.length > 1 && currentIndex !== -1) {
+      const nextIndex = currentIndex < categoryItems.length - 1 ? currentIndex + 1 : 0;
+      setLightboxItem(categoryItems[nextIndex]);
+    }
+  };
+
+  // Keyboard navigation for lightbox
+  React.useEffect(() => {
+    if (!lightboxItem) return;
+
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'ArrowLeft') {
+        handlePrevImage();
+      } else if (e.key === 'ArrowRight') {
+        handleNextImage();
+      } else if (e.key === 'Escape') {
+        setLightboxItem(null);
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [lightboxItem, currentIndex, categoryItems]);
+
   const defaultCategories = ['All', 'Weddings', 'Birthdays', 'Corporate Events', 'Catering'];
   
   // Dynamically merge default categories, actual item categories, and any actively selected custom category/service name
@@ -72,7 +121,7 @@ export default function Portfolio({ cmsData, selectedCategory, setSelectedCatego
         {/* Aspect ratio box */}
         <div className="relative h-[250px] overflow-hidden bg-luxury-gray">
           <img
-            src={item.imageUrl}
+            src={item.imageUrl || null}
             alt={item.title}
             className="w-full h-full object-cover group-hover/item:scale-110 transition-transform duration-700 select-none"
             referrerPolicy="no-referrer"
@@ -224,14 +273,40 @@ export default function Portfolio({ cmsData, selectedCategory, setSelectedCatego
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-center mt-4">
                 {/* Image panel with gold thin border frame */}
-                <div className="relative overflow-hidden border border-gold-500/20 h-[300px] md:h-[400px]">
+                <div className="relative overflow-hidden border border-gold-500/20 h-[300px] md:h-[400px] group/lightbox">
                   <div className="absolute inset-0 border border-gold-400/10 m-2.5 z-10 pointer-events-none" />
                   <img
-                    src={lightboxItem.imageUrl}
+                    src={lightboxItem.imageUrl || null}
                     alt={lightboxItem.title}
-                    className="w-full h-full object-cover"
+                    className="w-full h-full object-cover animate-fade-in"
                     referrerPolicy="no-referrer"
                   />
+
+                  {/* Previous / Next Arrow Overlay inside the image container */}
+                  {categoryItems.length > 1 && (
+                    <>
+                      <button
+                        onClick={handlePrevImage}
+                        className="absolute left-3 top-1/2 -translate-y-1/2 z-20 w-8 h-8 rounded-full border border-gold-400/30 bg-luxury-black/85 flex items-center justify-center text-gold-400 hover:text-white hover:border-gold-300 hover:bg-gold-500/15 transition-all duration-300 shadow-md focus:outline-none cursor-pointer"
+                        title="Previous Photo in Category"
+                      >
+                        <ChevronLeft size={16} />
+                      </button>
+
+                      <button
+                        onClick={handleNextImage}
+                        className="absolute right-3 top-1/2 -translate-y-1/2 z-20 w-8 h-8 rounded-full border border-gold-400/30 bg-luxury-black/85 flex items-center justify-center text-gold-400 hover:text-white hover:border-gold-300 hover:bg-gold-500/15 transition-all duration-300 shadow-md focus:outline-none cursor-pointer"
+                        title="Next Photo in Category"
+                      >
+                        <ChevronRight size={16} />
+                      </button>
+
+                      {/* Small current image counter indicator */}
+                      <div className="absolute bottom-3 left-1/2 -translate-x-1/2 z-20 bg-luxury-black/90 border border-gold-500/20 px-2.5 py-1 rounded font-mono text-[9px] text-gold-400 tracking-wider">
+                        {currentIndex + 1} / {categoryItems.length}
+                      </div>
+                    </>
+                  )}
                 </div>
 
                 {/* Details list panel */}

@@ -40,22 +40,69 @@ interface ImageUploaderProps {
 function ImageUploader({ label, value, onChange, idPrefix }: ImageUploaderProps) {
   const [dragActive, setDragActive] = useState(false);
   const [error, setError] = useState('');
+  const [isCompressing, setIsCompressing] = useState(false);
 
   const handleFile = (file: File) => {
     if (!file.type.startsWith('image/')) {
       setError('Please upload an image file.');
       return;
     }
-    if (file.size > 2 * 1024 * 1024) {
-      setError('Image is larger than 2MB. Please compress for fast loading.');
-    } else {
-      setError('');
-    }
+    
+    setError('');
+    setIsCompressing(true);
 
     const reader = new FileReader();
     reader.onload = (e) => {
-      if (e.target?.result && typeof e.target.result === 'string') {
-        onChange(e.target.result);
+      const img = new Image();
+      img.onload = () => {
+        try {
+          const canvas = document.createElement('canvas');
+          let width = img.width;
+          let height = img.height;
+          
+          // Downscale high-resolution images to a maximum dimension of 1200px
+          const MAX_DIM = 1200;
+          if (width > MAX_DIM || height > MAX_DIM) {
+            if (width > height) {
+              height = Math.round((height * MAX_DIM) / width);
+              width = MAX_DIM;
+            } else {
+              width = Math.round((width * MAX_DIM) / height);
+              height = MAX_DIM;
+            }
+          }
+
+          canvas.width = width;
+          canvas.height = height;
+          const ctx = canvas.getContext('2d');
+          if (!ctx) {
+            if (typeof e.target?.result === 'string') {
+              onChange(e.target.result);
+            }
+            setIsCompressing(false);
+            return;
+          }
+
+          ctx.drawImage(img, 0, 0, width, height);
+          
+          // Compress quality: 0.75 is the perfect balance of crisp visual quality and tiny file size
+          const compressedDataUrl = canvas.toDataURL('image/jpeg', 0.75);
+          onChange(compressedDataUrl);
+          setIsCompressing(false);
+        } catch (err) {
+          // Safe fallback if canvas fails
+          if (typeof e.target?.result === 'string') {
+            onChange(e.target.result);
+          }
+          setIsCompressing(false);
+        }
+      };
+      img.onerror = () => {
+        setError('Failed to process image.');
+        setIsCompressing(false);
+      };
+      if (typeof e.target?.result === 'string') {
+        img.src = e.target.result;
       }
     };
     reader.readAsDataURL(file);
@@ -84,9 +131,14 @@ function ImageUploader({ label, value, onChange, idPrefix }: ImageUploaderProps)
     <div className="space-y-2 bg-luxury-gray/10 p-3 border border-gold-500/10 rounded">
       <div className="flex justify-between items-center">
         <label className="text-[10px] font-mono tracking-wider text-gold-400 uppercase font-semibold">{label}</label>
-        {value && value.startsWith('data:image/') && (
-          <span className="text-[8px] font-mono text-emerald-400 uppercase bg-emerald-950/20 px-1 border border-emerald-500/20 rounded">Uploaded File</span>
-        )}
+        <div className="flex gap-1">
+          {isCompressing && (
+            <span className="text-[8px] font-mono text-amber-400 uppercase bg-amber-950/20 px-1 border border-amber-500/20 rounded animate-pulse">Compressing...</span>
+          )}
+          {value && value.startsWith('data:image/') && (
+            <span className="text-[8px] font-mono text-emerald-400 uppercase bg-emerald-950/20 px-1 border border-emerald-500/20 rounded">Optimized</span>
+          )}
+        </div>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-12 gap-3 items-center">
@@ -94,7 +146,7 @@ function ImageUploader({ label, value, onChange, idPrefix }: ImageUploaderProps)
         <div className="md:col-span-3 flex justify-center">
           {value ? (
             <div className="relative group w-20 h-20 border border-gold-500/20 bg-luxury-black rounded overflow-hidden">
-              <img src={value} alt="Preview" className="w-full h-full object-cover" referrerPolicy="no-referrer" />
+              <img src={value || null} alt="Preview" className="w-full h-full object-cover" referrerPolicy="no-referrer" />
               <button
                 type="button"
                 onClick={() => onChange('')}
@@ -183,21 +235,35 @@ export default function AdminPanel({
   dbStatus = 'connecting'
 }: AdminPanelProps) {
   const [cmsData, setCmsData] = useState<CMSState>(propCmsData);
+  const [autoSaveEnabled, setAutoSaveEnabled] = useState(true);
+  const [isSaveSuccess, setIsSaveSuccess] = useState(false);
 
   // Sync from props if propCmsData changes externally (e.g. on Reset)
   useEffect(() => {
     setCmsData(propCmsData);
   }, [propCmsData]);
 
+  const hasUnsavedChanges = JSON.stringify(cmsData) !== JSON.stringify(propCmsData);
+
+  const handleManualSave = () => {
+    propOnUpdateCMS(cmsData);
+    setIsSaveSuccess(true);
+    setTimeout(() => {
+      setIsSaveSuccess(false);
+    }, 2000);
+  };
+
   // Debounced parent update so typing is ultra-responsive and doesn't lag the main app
   useEffect(() => {
+    if (!autoSaveEnabled) return;
+
     const timer = setTimeout(() => {
-      if (JSON.stringify(cmsData) !== JSON.stringify(propCmsData)) {
+      if (hasUnsavedChanges) {
         propOnUpdateCMS(cmsData);
       }
     }, 400); // 400ms debounce
     return () => clearTimeout(timer);
-  }, [cmsData, propOnUpdateCMS, propCmsData]);
+  }, [cmsData, propOnUpdateCMS, propCmsData, autoSaveEnabled, hasUnsavedChanges]);
 
   const onUpdateCMS = (updated: CMSState) => {
     setCmsData(updated);
@@ -489,9 +555,50 @@ export default function AdminPanel({
             </div>
           </div>
 
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-2 sm:gap-4">
             {isAuthenticated && (
-              <div className="hidden sm:flex items-center gap-2 bg-gold-500/10 border border-gold-500/20 px-3 py-1 rounded">
+              <div className="flex items-center gap-1.5 sm:gap-3 bg-luxury-black/60 border border-gold-500/15 p-1 sm:p-1.5 rounded-md">
+                {/* Auto Save Toggle */}
+                <label className="flex items-center gap-1.5 cursor-pointer select-none">
+                  <input
+                    type="checkbox"
+                    checked={autoSaveEnabled}
+                    onChange={(e) => setAutoSaveEnabled(e.target.checked)}
+                    className="accent-gold-500 h-3 w-3 rounded border-gray-700 focus:ring-gold-500 bg-luxury-gray cursor-pointer"
+                  />
+                  <span className="text-[9px] font-mono tracking-wider text-gray-400 uppercase hidden sm:inline">Auto-Save</span>
+                </label>
+
+                {/* Vertical Divider */}
+                <span className="h-4 w-[1px] bg-gold-500/20" />
+
+                {/* Manual Save button */}
+                <button
+                  onClick={handleManualSave}
+                  disabled={!hasUnsavedChanges && !isSaveSuccess}
+                  className={`px-2 py-1 text-[9px] font-mono font-bold uppercase tracking-wider rounded transition-all duration-300 flex items-center gap-1 cursor-pointer select-none ${
+                    isSaveSuccess 
+                      ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30'
+                      : hasUnsavedChanges
+                        ? 'bg-gold-500 text-luxury-black hover:bg-gold-400 shadow-[0_0_10px_rgba(212,163,89,0.35)] animate-pulse'
+                        : 'bg-luxury-black/30 text-gray-600 border border-gray-800/40 cursor-not-allowed'
+                  }`}
+                  title={hasUnsavedChanges ? "Push and Deploy Changes Now" : "All changes up-to-date"}
+                >
+                  <Save size={10} />
+                  <span>
+                    {isSaveSuccess 
+                      ? 'SAVED!' 
+                      : hasUnsavedChanges 
+                        ? 'SAVE ALL' 
+                        : 'SAVED'}
+                  </span>
+                </button>
+              </div>
+            )}
+
+            {isAuthenticated && (
+              <div className="hidden md:flex items-center gap-2 bg-gold-500/10 border border-gold-500/20 px-3 py-1 rounded">
                 <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
                 <span className="text-[10px] font-mono tracking-wider text-gold-300 uppercase">ACCESS SECURED</span>
               </div>
@@ -3192,7 +3299,7 @@ export default function AdminPanel({
                                   <tr key={prod.id} className="hover:bg-white/5 transition-colors group">
                                     <td className="py-3 pl-2 flex items-center gap-3">
                                       <div className="w-10 h-10 rounded border border-gold-500/10 bg-black overflow-hidden flex-shrink-0">
-                                        <img src={prod.imageUrl} alt={prod.name} className="w-full h-full object-cover" />
+                                        <img src={prod.imageUrl || null} alt={prod.name} className="w-full h-full object-cover" />
                                       </div>
                                       <div>
                                         <span className="font-semibold text-white block leading-tight">{prod.name}</span>

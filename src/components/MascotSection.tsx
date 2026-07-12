@@ -139,7 +139,7 @@ export default function MascotSection({ cmsData, onViewProducts }: MascotSection
               
               <div className="relative aspect-[4/3] rounded overflow-hidden">
                 <img
-                  src={imageUrl}
+                  src={imageUrl || null}
                   alt={heading}
                   className="w-full h-full object-cover transform scale-102 group-hover:scale-105 transition-transform duration-700"
                   referrerPolicy="no-referrer"

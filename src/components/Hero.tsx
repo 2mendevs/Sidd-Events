@@ -17,7 +17,7 @@ export default function Hero({ onExploreServices, onViewOurWork, cmsData }: Hero
       {/* Background Image with Premium Luxury Overlays */}
       <div className="absolute inset-0 z-0">
         <img
-          src={imageUrl}
+          src={imageUrl || null}
           alt="Luxury Event Grand Ballroom"
           className="w-full h-full object-cover scale-105 select-none"
           referrerPolicy="no-referrer"
