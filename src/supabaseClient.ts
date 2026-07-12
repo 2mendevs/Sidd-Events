@@ -1,8 +1,9 @@
+/// <reference types="vite/client" />
 import { createClient } from '@supabase/supabase-js';
 
 // Fallback to the user's provided Supabase project credentials
-export const SUPABASE_URL = (import.meta as any).env?.VITE_SUPABASE_URL || 'https://pontvvtvxmldaqkwwuxn.supabase.co';
-export const SUPABASE_ANON_KEY = (import.meta as any).env?.VITE_SUPABASE_ANON_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBvbnR2dnR2eG1sZGFxa3d3dXhuIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODI2MTcxNDAsImV4cCI6MjA5ODE5MzE0MH0.VWWKQG212MYKL-K4cLIEuCDv6LFCH0EniLXjpUpr2Qs';
+export const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL || 'https://pontvvtvxmldaqkwwuxn.supabase.co';
+export const SUPABASE_ANON_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBvbnR2dnR2eG1sZGFxa3d3dXhuIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODI2MTcxNDAsImV4cCI6MjA5ODE5MzE0MH0.VWWKQG212MYKL-K4cLIEuCDv6LFCH0EniLXjpUpr2Qs';
 
 export const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 

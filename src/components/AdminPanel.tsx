@@ -9,6 +9,7 @@ import { motion, AnimatePresence } from 'motion/react';
 import { ConsultationRequest } from '../types';
 import { CMSState, ServiceCard, GalleryItem } from '../cmsData';
 import { DBStatus } from '../supabaseSync';
+import { SUPABASE_SQL_SCHEMA } from '../supabaseClient';
 import Logo from './Logo';
 
 interface AdminPanelProps {
@@ -379,6 +380,7 @@ export default function AdminPanel({
   const [prodImageUrl, setProdImageUrl] = useState('');
   const [prodTags, setProdTags] = useState('');
   const [productDeleteConfirmId, setProductDeleteConfirmId] = useState<string | null>(null);
+  const [sqlCopied, setSqlCopied] = useState(false);
 
   // New project category helper states
   const [newProjectCategory, setNewProjectCategory] = useState('Weddings');
@@ -3253,7 +3255,7 @@ export default function AdminPanel({
                               className="w-full gold-shimmer-btn py-3 text-luxury-black font-semibold text-xs tracking-widest uppercase focus:outline-none cursor-pointer flex items-center justify-center gap-2"
                             >
                               {editingProductId ? <Save size={14} /> : <Plus size={14} />}
-                              <span>{editingProductId ? 'UPDATE INVENTORY' : 'ADD TO GALLERY'}</span>
+                              <span>{editingProductId ? 'UPDATE INVENTORY' : 'ADD TO INVENTORY'}</span>
                             </button>
                           </form>
                         </div>
@@ -3432,6 +3434,38 @@ export default function AdminPanel({
                              dbStatus === 'setup_required' ? 'Database credentials are correct, but schema tables are missing or not fully created in Supabase.' :
                              'The terminal is unable to establish contact with the cloud host. System operations are running in fallback mode.'}
                           </p>
+
+                          {dbStatus === 'setup_required' && (
+                            <div className="mt-6 p-4 bg-amber-500/5 border border-amber-500/20 rounded text-left space-y-3">
+                              <span className="font-semibold text-amber-400 text-[11px] block">⚙️ ACTION REQUIRED: RUN THE SQL SCHEMA IN SUPABASE</span>
+                              <p className="text-[10px] text-gray-300 leading-relaxed font-sans">
+                                You have successfully added your own custom Supabase environment variables in Vercel! To activate your private real-time syncing database, please run this database initialization script in your Supabase project:
+                              </p>
+                              <ol className="text-[10px] text-gray-400 list-decimal pl-4 space-y-1 font-sans">
+                                <li>Open your <a href="https://supabase.com/dashboard" target="_blank" rel="noopener noreferrer" className="text-gold-400 hover:underline">Supabase Project Dashboard</a>.</li>
+                                <li>Click on the <strong>SQL Editor</strong> tab on the left sidebar.</li>
+                                <li>Click <strong>New Query</strong>.</li>
+                                <li>Copy the SQL script below, paste it into the editor, and click <strong>Run</strong>.</li>
+                                <li>Refresh this website page!</li>
+                              </ol>
+                              <div className="relative mt-2">
+                                <pre className="bg-black/50 p-2.5 rounded text-[9px] font-mono text-gray-300 overflow-x-auto max-h-[120px] border border-gold-500/5 scrollbar-thin">
+                                  {SUPABASE_SQL_SCHEMA}
+                                </pre>
+                                <button
+                                  type="button"
+                                  onClick={() => {
+                                    navigator.clipboard.writeText(SUPABASE_SQL_SCHEMA);
+                                    setSqlCopied(true);
+                                    setTimeout(() => setSqlCopied(false), 3000);
+                                  }}
+                                  className="absolute top-2 right-2 bg-gold-500 hover:bg-gold-400 text-luxury-black font-semibold text-[9px] px-2 py-1 font-mono tracking-wider uppercase rounded cursor-pointer transition-colors"
+                                >
+                                  {sqlCopied ? 'COPIED!' : 'COPY SCRIPT'}
+                                </button>
+                              </div>
+                            </div>
+                          )}
                         </div>
 
                         {/* Divider */}
