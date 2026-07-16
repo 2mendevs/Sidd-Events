@@ -90,16 +90,14 @@ export default function EntranceLoader({ cmsData, onComplete }: EntranceLoaderPr
               transition={{ duration: 0.85, ease: [0.16, 1, 0.3, 1] }}
               className="flex flex-col items-center justify-center p-4 sm:p-6 space-y-3 sm:space-y-4"
             >
-              {/* Custom Logo Image - loaded directly with elegant opacity transition */}
-              {cmsData.navbar.logoImage && (
-                <div className="mb-0.5 sm:mb-1">
-                  <Logo 
-                    size="lg" 
-                    showText={false}
-                    logoImage={cmsData.navbar.logoImage}
-                  />
-                </div>
-              )}
+              {/* Custom Logo Image - loaded from local git repo path instead of Supabase */}
+              <div className="mb-0.5 sm:mb-1">
+                <Logo 
+                  size="lg" 
+                  showText={false}
+                  logoImage="/assets/custom_entrance_logo.png"
+                />
+              </div>
 
               {/* Grand Elegant Typography Title */}
               <h1 className="font-display font-semibold text-lg sm:text-2xl md:text-3xl tracking-[0.2em] sm:tracking-[0.32em] text-white uppercase leading-none drop-shadow-xl px-2">
