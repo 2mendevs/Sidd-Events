@@ -95,7 +95,7 @@ export default function EntranceLoader({ cmsData, onComplete }: EntranceLoaderPr
                 <Logo 
                   size="lg" 
                   showText={false}
-                  logoImage="/assets/custom_entrance_logo.png"
+                  logoImage="/custom_entrance_logo.png"
                 />
               </div>
 
