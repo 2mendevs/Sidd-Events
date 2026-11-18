@@ -312,7 +312,7 @@ export default function Consultation({ selectedServiceId, onBookingSuccess, cmsD
                     required
                     value={fullName}
                     onChange={(e) => setFullName(e.target.value)}
-                    placeholder="e.g. Boopathi Aka Sanjay"
+                    placeholder="Your Name"
                     className="w-full bg-luxury-black border border-gold-500/10 py-3.5 px-4 text-xs text-gray-300 focus:outline-none focus:border-gold-400/50"
                   />
                 </div>
@@ -327,7 +327,7 @@ export default function Consultation({ selectedServiceId, onBookingSuccess, cmsD
                     required
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
-                    placeholder="e.g. boopathiakasanjay@gmail.com"
+                    placeholder="Email Address"
                     className="w-full bg-luxury-black border border-gold-500/10 py-3.5 px-4 text-xs text-gray-300 focus:outline-none focus:border-gold-400/50"
                   />
                 </div>
@@ -344,7 +344,7 @@ export default function Consultation({ selectedServiceId, onBookingSuccess, cmsD
                     required
                     value={phone}
                     onChange={(e) => setPhone(e.target.value)}
-                    placeholder="e.g. 6381690032"
+                    placeholder="Phone Number"
                     className="w-full bg-luxury-black border border-gold-500/10 py-3.5 px-4 text-xs text-gray-300 focus:outline-none focus:border-gold-400/50"
                   />
                 </div>
