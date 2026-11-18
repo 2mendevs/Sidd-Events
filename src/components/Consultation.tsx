@@ -133,7 +133,7 @@ export default function Consultation({ selectedServiceId, onBookingSuccess, cmsD
                 </div>
                 <div>
                   <p className="text-xs font-mono font-semibold text-white tracking-wider">{cmsData.contact.email}</p>
-                  <p className="text-[10px] text-gray-500">Drop us an email</p>
+                  <p className="text-[10px] text-gray-500">Drop us an e-mail</p>
                 </div>
               </div>
             </div>
